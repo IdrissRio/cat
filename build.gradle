@@ -19,8 +19,8 @@ jastadd {
   modules {
     include("extendj/jastadd_modules") // Include core ExtendJ modules.
 
-    module "intraj", {
-      imports "java8 frontend" // ExtendJ dependency for intraj module.
+    module "cat", {
+      imports "java8 frontend" // ExtendJ dependency for cat module.
 
       jastadd {
         basedir "src/jastadd/"
@@ -32,7 +32,7 @@ jastadd {
   }
 
   // Target module to build:
-  module = 'intraj'
+  module = 'cat'
   jastaddOptions = [ "--rewrite=cnta",
                      "--safeLazy",
                      "--visitCheck=false",
@@ -84,7 +84,7 @@ test {
 
 
 
-// task intraj(type: Jar) { 
+// task cat(type: Jar) { 
 //     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
 //     from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
@@ -92,24 +92,24 @@ test {
 //     }
 //     from sourceSets.main.output
 //     manifest {
-//         attributes 'Main-Class': 'org.extendj.IntraJ'
+//         attributes 'Main-Class': 'org.extendj.cat'
 //     }
-//     baseName = 'intraj'
+//     baseName = 'cat'
 //     destinationDir = projectDir
 // }
 
 // artifacts {
-//   archives intraj
+//   archives cat
 // }
 
 jar {
   duplicatesStrategy = DuplicatesStrategy.INCLUDE
     manifest {
-        attributes 'Main-Class': 'org.extendj.IntraJ'
+        attributes 'Main-Class': 'org.extendj.Cat'
     }
     from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
-    baseName = 'intraj'
+    baseName = 'cat'
 }
 
 
@@ -121,7 +121,7 @@ sourceCompatibility = targetCompatibility = '1.8'
 task sourceZip(type: Zip) {
   description 'Builds a Zip file with the entire repisotory (including the ExtendJ submodule).'
   destinationDirectory = projectDir
-  archiveFileName = "intraj-src.zip"
+  archiveFileName = "cat-src.zip"
 
   from (projectDir) {
     exclude '**/.git'
@@ -139,5 +139,5 @@ task sourceZip(type: Zip) {
     exclude '**/*.swp'
   }
 
-  into 'intraj'
+  into 'cat'
 }
