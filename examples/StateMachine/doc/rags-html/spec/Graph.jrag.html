@@ -1,0 +1,27 @@
+<HTML>
+<head><script src="../../resources/jquery.js"></script><script>$(document).ready(function(event) {$(document.location.hash).css('background', 'yellow');$(document.location.hash + ' span').css('color', 'red');});</script></head><BODY BGCOLOR="white">
+<PRE>
+<span id="line-1"><span style="color: green">001</span>    // Collection attributes. See section 4.2 in the paper<a name="line-1"></a></span>
+<span id="line-2"><span style="color: green">002</span>    // Reference manual: http://jastadd.org/<a name="line-2"></a></span>
+<span id="line-3"><span style="color: green">003</span>    <a name="line-3"></a></span>
+<span id="line-4"><span style="color: green">004</span>    import java.util.*;<a name="line-4"></a></span>
+<span id="line-5"><span style="color: green">005</span>    aspect Graph {<a name="line-5"></a></span>
+<span id="line-6"><span style="color: green">006</span>      coll Set&lt;Transition&gt; State.transitions() [new HashSet&lt;Transition&gt;()] with add;<a name="line-6"></a></span>
+<span id="line-7"><span style="color: green">007</span>      <a name="line-7"></a></span>
+<span id="line-8"><span style="color: green">008</span>      Transition contributes this<a name="line-8"></a></span>
+<span id="line-9"><span style="color: green">009</span>        when source() != null<a name="line-9"></a></span>
+<span id="line-10"><span style="color: green">010</span>        to State.transitions()<a name="line-10"></a></span>
+<span id="line-11"><span style="color: green">011</span>        for source();<a name="line-11"></a></span>
+<span id="line-12"><span style="color: green">012</span>      <a name="line-12"></a></span>
+<span id="line-13"><span style="color: green">013</span>      syn Set&lt;State&gt; State.successors() {<a name="line-13"></a></span>
+<span id="line-14"><span style="color: green">014</span>        Set&lt;State&gt; result = new HashSet&lt;State&gt;();<a name="line-14"></a></span>
+<span id="line-15"><span style="color: green">015</span>        for (Transition t : transitions()) {<a name="line-15"></a></span>
+<span id="line-16"><span style="color: green">016</span>          if (t.target() != null) result.add(t.target());<a name="line-16"></a></span>
+<span id="line-17"><span style="color: green">017</span>        }<a name="line-17"></a></span>
+<span id="line-18"><span style="color: green">018</span>        return result;<a name="line-18"></a></span>
+<span id="line-19"><span style="color: green">019</span>      }<a name="line-19"></a></span>
+<span id="line-20"><span style="color: green">020</span>    <a name="line-20"></a></span>
+<span id="line-21"><span style="color: green">021</span>    }<a name="line-21"></a></span>
+</PRE>
+</BODY>
+</HTML>

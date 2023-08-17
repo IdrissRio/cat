@@ -1,0 +1,74 @@
+<h1>StateMachine Description</h1>
+
+<p>2010-04-30 <br />
+G&ouml;rel Hedin <br />
+Lund University, Sweden</p>
+
+<p>This is an implementation of the state machine example
+in my tutorial: <br />
+<strong><a href="http://link.springer.com/chapter/10.1007%2F978-3-642-18023-1_4">An Introductory Tutorial on JastAdd Attribute Grammars</a></strong></p>
+
+<p><em>To be published during 2010 in the Springer Verlag LNCS
+postproceedings of GTTSE 2009.</em></p>
+
+<p>Directories and files:</p>
+
+<ul>
+<li><strong>AST:</strong> Generated directory with Java code</li>
+<li><strong>exampleprogs:</strong> Example main programs</li>
+<li><strong>spec:</strong> JastAdd and parser specification files</li>
+<li><strong>tests:</strong> JUnit tests</li>
+<li><strong>tools:</strong> The tools used: jastadd, junit,
+and parsing tools (jflex, beaver, JastAddParser).</li>
+<li><strong>build.xml:</strong> The ant build-file</li>
+</ul>
+
+<p>To run the examples, you need the following programs installed:</p>
+
+<ul>
+<li>ant</li>
+<li>javac</li>
+<li>java</li>
+</ul>
+
+<p>The build file supports the following targets:</p>
+
+<ul>
+<li><strong>ant gen:</strong> generates the AST directory with Java code</li>
+<li><strong>ant build:</strong> compiles all Java code in this directory</li>
+<li><strong>ant test:</strong> runs the JUnit test cases</li>
+<li><strong>ant doc:</strong> generates javadoc</li>
+<li><strong>ant clean:</strong> removes all generated files (the AST directory and all class files).</li>
+</ul>
+
+<p>Try it out using the following command:</p>
+
+<pre><code>ant test
+</code></pre>
+
+<p>This should trigger generation and compilation of Java code,
+and running all the JUnit test cases. A window should appear
+showing that all the tests pass.</p>
+
+<p>Or, run the example main program:</p>
+
+<pre><code>java -cp .:tools/beaver-rt.jar exampleprogs/MainProgram
+</code></pre>
+
+<p>This should print out reachability information about the
+state machine in Fig. 3 in the tutorial.</p>
+
+<p>Or, run the "compiler" main program:</p>
+
+<pre><code>java -cp .:tools/beaver-rt.jar exampleprogs/Compiler exampleprogs/test.sm
+</code></pre>
+
+<p>which runs a "compiler" for the state machine language that prettyprints the program in file test.sm, and prints out reachability and cycles information for it.</p>
+
+<p>Some notes about the parser:</p>
+
+<ul>
+<li>For parsing we use a .jflex file to specify tokens and a .parser file to specify the parsing and AST building.</li>
+<li>The .parser file is run through JastAddParser which is a preprocessor to beaver. The generated jflex and beaver files are placed in the generated AST directory.</li>
+<li>The reason for using the JastAddParser preprocessor is that it makes it simpler to specify the tree building, and you can also supply several .parser files if you want to modularize your language.</li>
+</ul>

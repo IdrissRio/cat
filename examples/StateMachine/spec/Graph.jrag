@@ -1,0 +1,24 @@
+// Collection attributes. See section 4.2 in the paper
+// Reference manual: http://jastadd.org/
+
+import java.util.*;
+aspect Graph {
+public
+  AttributeTracer StateMachine.trace = new AttributeTracer();
+
+  coll Set<Transition> State.transitions()[new HashSet<Transition>()] with add;
+
+  Transition contributes this
+    when source() != null
+    to State.transitions()
+    for source();
+
+  syn Set<State> State.successors() {
+    Set<State> result = new HashSet<State>();
+    for (Transition t : transitions()) {
+      if (t.target() != null)
+        result.add(t.target());
+    }
+    return result;
+  }
+}

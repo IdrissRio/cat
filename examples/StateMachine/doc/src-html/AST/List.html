@@ -1,0 +1,146 @@
+<HTML>
+<head><script src="../../resources/jquery.js"></script><script>$(document).ready(function(event) {$(document.location.hash).css('background', 'yellow');$(document.location.hash + ' span').css('color', 'red');});</script></head><BODY BGCOLOR="white">
+<PRE>
+<span id="line-1"><span style="color: green">001</span>    /* This file was generated with JastAdd2 (http://jastadd.org) version 2.1.3 */<a name="line-1"></a></span>
+<span id="line-2"><span style="color: green">002</span>    package AST;<a name="line-2"></a></span>
+<span id="line-3"><span style="color: green">003</span>    <a name="line-3"></a></span>
+<span id="line-4"><span style="color: green">004</span>    import java.util.*;<a name="line-4"></a></span>
+<span id="line-5"><span style="color: green">005</span>    /**<a name="line-5"></a></span>
+<span id="line-6"><span style="color: green">006</span>     * @ast node<a name="line-6"></a></span>
+<span id="line-7"><span style="color: green">007</span>     * @production List : {@link ASTNode};<a name="line-7"></a></span>
+<span id="line-8"><span style="color: green">008</span>    <a name="line-8"></a></span>
+<span id="line-9"><span style="color: green">009</span>     */<a name="line-9"></a></span>
+<span id="line-10"><span style="color: green">010</span>    public class List&lt;T extends ASTNode&gt; extends ASTNode&lt;T&gt; implements Cloneable {<a name="line-10"></a></span>
+<span id="line-11"><span style="color: green">011</span>      /**<a name="line-11"></a></span>
+<span id="line-12"><span style="color: green">012</span>       * @apilevel internal<a name="line-12"></a></span>
+<span id="line-13"><span style="color: green">013</span>       */<a name="line-13"></a></span>
+<span id="line-14"><span style="color: green">014</span>      public List&lt;T&gt; clone() throws CloneNotSupportedException {<a name="line-14"></a></span>
+<span id="line-15"><span style="color: green">015</span>        List node = (List) super.clone();<a name="line-15"></a></span>
+<span id="line-16"><span style="color: green">016</span>        return node;<a name="line-16"></a></span>
+<span id="line-17"><span style="color: green">017</span>      }<a name="line-17"></a></span>
+<span id="line-18"><span style="color: green">018</span>      /**<a name="line-18"></a></span>
+<span id="line-19"><span style="color: green">019</span>       * @apilevel internal<a name="line-19"></a></span>
+<span id="line-20"><span style="color: green">020</span>       */<a name="line-20"></a></span>
+<span id="line-21"><span style="color: green">021</span>      public List&lt;T&gt; copy() {<a name="line-21"></a></span>
+<span id="line-22"><span style="color: green">022</span>        try {<a name="line-22"></a></span>
+<span id="line-23"><span style="color: green">023</span>          List node = (List) clone();<a name="line-23"></a></span>
+<span id="line-24"><span style="color: green">024</span>          node.parent = null;<a name="line-24"></a></span>
+<span id="line-25"><span style="color: green">025</span>          if(children != null) {<a name="line-25"></a></span>
+<span id="line-26"><span style="color: green">026</span>            node.children = (ASTNode[]) children.clone();<a name="line-26"></a></span>
+<span id="line-27"><span style="color: green">027</span>          }<a name="line-27"></a></span>
+<span id="line-28"><span style="color: green">028</span>          return node;<a name="line-28"></a></span>
+<span id="line-29"><span style="color: green">029</span>        } catch (CloneNotSupportedException e) {<a name="line-29"></a></span>
+<span id="line-30"><span style="color: green">030</span>          throw new Error("Error: clone not supported for " + getClass().getName());<a name="line-30"></a></span>
+<span id="line-31"><span style="color: green">031</span>        }<a name="line-31"></a></span>
+<span id="line-32"><span style="color: green">032</span>      }<a name="line-32"></a></span>
+<span id="line-33"><span style="color: green">033</span>      /**<a name="line-33"></a></span>
+<span id="line-34"><span style="color: green">034</span>       * Create a deep copy of the AST subtree at this node.<a name="line-34"></a></span>
+<span id="line-35"><span style="color: green">035</span>       * The copy is dangling, i.e. has no parent.<a name="line-35"></a></span>
+<span id="line-36"><span style="color: green">036</span>       * @return dangling copy of the subtree at this node<a name="line-36"></a></span>
+<span id="line-37"><span style="color: green">037</span>       * @apilevel low-level<a name="line-37"></a></span>
+<span id="line-38"><span style="color: green">038</span>       */<a name="line-38"></a></span>
+<span id="line-39"><span style="color: green">039</span>      public List&lt;T&gt; fullCopy() {<a name="line-39"></a></span>
+<span id="line-40"><span style="color: green">040</span>        List tree = (List) copy();<a name="line-40"></a></span>
+<span id="line-41"><span style="color: green">041</span>        if (children != null) {<a name="line-41"></a></span>
+<span id="line-42"><span style="color: green">042</span>          for (int i = 0; i &lt; children.length; ++i) {<a name="line-42"></a></span>
+<span id="line-43"><span style="color: green">043</span>            ASTNode child = (ASTNode) children[i];<a name="line-43"></a></span>
+<span id="line-44"><span style="color: green">044</span>            if(child != null) {<a name="line-44"></a></span>
+<span id="line-45"><span style="color: green">045</span>              child = child.fullCopy();<a name="line-45"></a></span>
+<span id="line-46"><span style="color: green">046</span>              tree.setChild(child, i);<a name="line-46"></a></span>
+<span id="line-47"><span style="color: green">047</span>            }<a name="line-47"></a></span>
+<span id="line-48"><span style="color: green">048</span>          }<a name="line-48"></a></span>
+<span id="line-49"><span style="color: green">049</span>        }<a name="line-49"></a></span>
+<span id="line-50"><span style="color: green">050</span>        return tree;<a name="line-50"></a></span>
+<span id="line-51"><span style="color: green">051</span>      }<a name="line-51"></a></span>
+<span id="line-52"><span style="color: green">052</span>      /**<a name="line-52"></a></span>
+<span id="line-53"><span style="color: green">053</span>       */<a name="line-53"></a></span>
+<span id="line-54"><span style="color: green">054</span>      public List() {<a name="line-54"></a></span>
+<span id="line-55"><span style="color: green">055</span>        super();<a name="line-55"></a></span>
+<span id="line-56"><span style="color: green">056</span>      }<a name="line-56"></a></span>
+<span id="line-57"><span style="color: green">057</span>      /**<a name="line-57"></a></span>
+<span id="line-58"><span style="color: green">058</span>       * Initializes the child array to the correct size.<a name="line-58"></a></span>
+<span id="line-59"><span style="color: green">059</span>       * Initializes List and Opt nta children.<a name="line-59"></a></span>
+<span id="line-60"><span style="color: green">060</span>       * @apilevel internal<a name="line-60"></a></span>
+<span id="line-61"><span style="color: green">061</span>       * @ast method<a name="line-61"></a></span>
+<span id="line-62"><span style="color: green">062</span>       */<a name="line-62"></a></span>
+<span id="line-63"><span style="color: green">063</span>      public void init$Children() {<a name="line-63"></a></span>
+<span id="line-64"><span style="color: green">064</span>      }<a name="line-64"></a></span>
+<span id="line-65"><span style="color: green">065</span>      /**<a name="line-65"></a></span>
+<span id="line-66"><span style="color: green">066</span>       */<a name="line-66"></a></span>
+<span id="line-67"><span style="color: green">067</span>      public List(T... initialChildren) {<a name="line-67"></a></span>
+<span id="line-68"><span style="color: green">068</span>        children = new ASTNode[initialChildren.length];<a name="line-68"></a></span>
+<span id="line-69"><span style="color: green">069</span>        for (int i = 0; i &lt; children.length; ++i) {<a name="line-69"></a></span>
+<span id="line-70"><span style="color: green">070</span>          addChild(initialChildren[i]);<a name="line-70"></a></span>
+<span id="line-71"><span style="color: green">071</span>        }<a name="line-71"></a></span>
+<span id="line-72"><span style="color: green">072</span>      }<a name="line-72"></a></span>
+<span id="line-73"><span style="color: green">073</span>      /**<a name="line-73"></a></span>
+<span id="line-74"><span style="color: green">074</span>       */<a name="line-74"></a></span>
+<span id="line-75"><span style="color: green">075</span>      private boolean list$touched = true;<a name="line-75"></a></span>
+<span id="line-76"><span style="color: green">076</span>      /**<a name="line-76"></a></span>
+<span id="line-77"><span style="color: green">077</span>       */<a name="line-77"></a></span>
+<span id="line-78"><span style="color: green">078</span>      public List&lt;T&gt; add(T node) {<a name="line-78"></a></span>
+<span id="line-79"><span style="color: green">079</span>        addChild(node);<a name="line-79"></a></span>
+<span id="line-80"><span style="color: green">080</span>        return this;<a name="line-80"></a></span>
+<span id="line-81"><span style="color: green">081</span>      }<a name="line-81"></a></span>
+<span id="line-82"><span style="color: green">082</span>      /**<a name="line-82"></a></span>
+<span id="line-83"><span style="color: green">083</span>       */<a name="line-83"></a></span>
+<span id="line-84"><span style="color: green">084</span>      public List&lt;T&gt; addAll(java.util.Collection&lt;? extends T&gt; c) {<a name="line-84"></a></span>
+<span id="line-85"><span style="color: green">085</span>        for (T node : c) {<a name="line-85"></a></span>
+<span id="line-86"><span style="color: green">086</span>          addChild(node);<a name="line-86"></a></span>
+<span id="line-87"><span style="color: green">087</span>        }<a name="line-87"></a></span>
+<span id="line-88"><span style="color: green">088</span>        return this;<a name="line-88"></a></span>
+<span id="line-89"><span style="color: green">089</span>      }<a name="line-89"></a></span>
+<span id="line-90"><span style="color: green">090</span>      /**<a name="line-90"></a></span>
+<span id="line-91"><span style="color: green">091</span>       */<a name="line-91"></a></span>
+<span id="line-92"><span style="color: green">092</span>      public void insertChild(ASTNode node, int i) {<a name="line-92"></a></span>
+<span id="line-93"><span style="color: green">093</span>    <a name="line-93"></a></span>
+<span id="line-94"><span style="color: green">094</span>        list$touched = true;<a name="line-94"></a></span>
+<span id="line-95"><span style="color: green">095</span>    <a name="line-95"></a></span>
+<span id="line-96"><span style="color: green">096</span>        super.insertChild(node, i);<a name="line-96"></a></span>
+<span id="line-97"><span style="color: green">097</span>      }<a name="line-97"></a></span>
+<span id="line-98"><span style="color: green">098</span>      /**<a name="line-98"></a></span>
+<span id="line-99"><span style="color: green">099</span>       */<a name="line-99"></a></span>
+<span id="line-100"><span style="color: green">100</span>      public void addChild(T node) {<a name="line-100"></a></span>
+<span id="line-101"><span style="color: green">101</span>    <a name="line-101"></a></span>
+<span id="line-102"><span style="color: green">102</span>        list$touched = true;<a name="line-102"></a></span>
+<span id="line-103"><span style="color: green">103</span>    <a name="line-103"></a></span>
+<span id="line-104"><span style="color: green">104</span>        super.addChild(node);<a name="line-104"></a></span>
+<span id="line-105"><span style="color: green">105</span>      }<a name="line-105"></a></span>
+<span id="line-106"><span style="color: green">106</span>      /**<a name="line-106"></a></span>
+<span id="line-107"><span style="color: green">107</span>       * @apilevel low-level<a name="line-107"></a></span>
+<span id="line-108"><span style="color: green">108</span>       */<a name="line-108"></a></span>
+<span id="line-109"><span style="color: green">109</span>      public void removeChild(int i) {<a name="line-109"></a></span>
+<span id="line-110"><span style="color: green">110</span>    <a name="line-110"></a></span>
+<span id="line-111"><span style="color: green">111</span>        list$touched = true;<a name="line-111"></a></span>
+<span id="line-112"><span style="color: green">112</span>    <a name="line-112"></a></span>
+<span id="line-113"><span style="color: green">113</span>        super.removeChild(i);<a name="line-113"></a></span>
+<span id="line-114"><span style="color: green">114</span>      }<a name="line-114"></a></span>
+<span id="line-115"><span style="color: green">115</span>      /**<a name="line-115"></a></span>
+<span id="line-116"><span style="color: green">116</span>       */<a name="line-116"></a></span>
+<span id="line-117"><span style="color: green">117</span>      public int getNumChild() {<a name="line-117"></a></span>
+<span id="line-118"><span style="color: green">118</span>    <a name="line-118"></a></span>
+<span id="line-119"><span style="color: green">119</span>        if (list$touched) {<a name="line-119"></a></span>
+<span id="line-120"><span style="color: green">120</span>          for (int i = 0; i &lt; getNumChildNoTransform(); i++) {<a name="line-120"></a></span>
+<span id="line-121"><span style="color: green">121</span>            getChild(i);<a name="line-121"></a></span>
+<span id="line-122"><span style="color: green">122</span>          }<a name="line-122"></a></span>
+<span id="line-123"><span style="color: green">123</span>          list$touched = false;<a name="line-123"></a></span>
+<span id="line-124"><span style="color: green">124</span>        }<a name="line-124"></a></span>
+<span id="line-125"><span style="color: green">125</span>    <a name="line-125"></a></span>
+<span id="line-126"><span style="color: green">126</span>        return getNumChildNoTransform();<a name="line-126"></a></span>
+<span id="line-127"><span style="color: green">127</span>      }<a name="line-127"></a></span>
+<span id="line-128"><span style="color: green">128</span>      /**<a name="line-128"></a></span>
+<span id="line-129"><span style="color: green">129</span>       * @apilevel low-level<a name="line-129"></a></span>
+<span id="line-130"><span style="color: green">130</span>       */<a name="line-130"></a></span>
+<span id="line-131"><span style="color: green">131</span>      public void flushCache() {<a name="line-131"></a></span>
+<span id="line-132"><span style="color: green">132</span>        super.flushCache();<a name="line-132"></a></span>
+<span id="line-133"><span style="color: green">133</span>      }<a name="line-133"></a></span>
+<span id="line-134"><span style="color: green">134</span>      /**<a name="line-134"></a></span>
+<span id="line-135"><span style="color: green">135</span>       * @apilevel internal<a name="line-135"></a></span>
+<span id="line-136"><span style="color: green">136</span>       */<a name="line-136"></a></span>
+<span id="line-137"><span style="color: green">137</span>      public void flushCollectionCache() {<a name="line-137"></a></span>
+<span id="line-138"><span style="color: green">138</span>        super.flushCollectionCache();<a name="line-138"></a></span>
+<span id="line-139"><span style="color: green">139</span>      }<a name="line-139"></a></span>
+<span id="line-140"><span style="color: green">140</span>    }<a name="line-140"></a></span>
+</PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,455 @@
+<HTML>
+<head><script src="../../resources/jquery.js"></script><script>$(document).ready(function(event) {$(document.location.hash).css('background', 'yellow');$(document.location.hash + ' span').css('color', 'red');});</script></head><BODY BGCOLOR="white">
+<PRE>
+<span id="line-1"><span style="color: green">001</span>    /* This file was generated with JastAdd2 (http://jastadd.org) version 2.1.3 */<a name="line-1"></a></span>
+<span id="line-2"><span style="color: green">002</span>    package AST;<a name="line-2"></a></span>
+<span id="line-3"><span style="color: green">003</span>    <a name="line-3"></a></span>
+<span id="line-4"><span style="color: green">004</span>    import java.util.*;<a name="line-4"></a></span>
+<span id="line-5"><span style="color: green">005</span>    /**<a name="line-5"></a></span>
+<span id="line-6"><span style="color: green">006</span>     * @ast node<a name="line-6"></a></span>
+<span id="line-7"><span style="color: green">007</span>     * @production ASTNode;<a name="line-7"></a></span>
+<span id="line-8"><span style="color: green">008</span>    <a name="line-8"></a></span>
+<span id="line-9"><span style="color: green">009</span>     */<a name="line-9"></a></span>
+<span id="line-10"><span style="color: green">010</span>    public class ASTNode&lt;T extends ASTNode&gt; extends beaver.Symbol  implements Cloneable, Iterable&lt;T&gt; {<a name="line-10"></a></span>
+<span id="line-11"><span style="color: green">011</span>      /**<a name="line-11"></a></span>
+<span id="line-12"><span style="color: green">012</span>       * @apilevel internal<a name="line-12"></a></span>
+<span id="line-13"><span style="color: green">013</span>       */<a name="line-13"></a></span>
+<span id="line-14"><span style="color: green">014</span>      public ASTNode&lt;T&gt; clone() throws CloneNotSupportedException {<a name="line-14"></a></span>
+<span id="line-15"><span style="color: green">015</span>        ASTNode node = (ASTNode) super.clone();<a name="line-15"></a></span>
+<span id="line-16"><span style="color: green">016</span>        return node;<a name="line-16"></a></span>
+<span id="line-17"><span style="color: green">017</span>      }<a name="line-17"></a></span>
+<span id="line-18"><span style="color: green">018</span>      /**<a name="line-18"></a></span>
+<span id="line-19"><span style="color: green">019</span>       * @apilevel internal<a name="line-19"></a></span>
+<span id="line-20"><span style="color: green">020</span>       */<a name="line-20"></a></span>
+<span id="line-21"><span style="color: green">021</span>      public ASTNode&lt;T&gt; copy() {<a name="line-21"></a></span>
+<span id="line-22"><span style="color: green">022</span>        try {<a name="line-22"></a></span>
+<span id="line-23"><span style="color: green">023</span>          ASTNode node = (ASTNode) clone();<a name="line-23"></a></span>
+<span id="line-24"><span style="color: green">024</span>          node.parent = null;<a name="line-24"></a></span>
+<span id="line-25"><span style="color: green">025</span>          if(children != null) {<a name="line-25"></a></span>
+<span id="line-26"><span style="color: green">026</span>            node.children = (ASTNode[]) children.clone();<a name="line-26"></a></span>
+<span id="line-27"><span style="color: green">027</span>          }<a name="line-27"></a></span>
+<span id="line-28"><span style="color: green">028</span>          return node;<a name="line-28"></a></span>
+<span id="line-29"><span style="color: green">029</span>        } catch (CloneNotSupportedException e) {<a name="line-29"></a></span>
+<span id="line-30"><span style="color: green">030</span>          throw new Error("Error: clone not supported for " + getClass().getName());<a name="line-30"></a></span>
+<span id="line-31"><span style="color: green">031</span>        }<a name="line-31"></a></span>
+<span id="line-32"><span style="color: green">032</span>      }<a name="line-32"></a></span>
+<span id="line-33"><span style="color: green">033</span>      /**<a name="line-33"></a></span>
+<span id="line-34"><span style="color: green">034</span>       * Create a deep copy of the AST subtree at this node.<a name="line-34"></a></span>
+<span id="line-35"><span style="color: green">035</span>       * The copy is dangling, i.e. has no parent.<a name="line-35"></a></span>
+<span id="line-36"><span style="color: green">036</span>       * @return dangling copy of the subtree at this node<a name="line-36"></a></span>
+<span id="line-37"><span style="color: green">037</span>       * @apilevel low-level<a name="line-37"></a></span>
+<span id="line-38"><span style="color: green">038</span>       */<a name="line-38"></a></span>
+<span id="line-39"><span style="color: green">039</span>      public ASTNode&lt;T&gt; fullCopy() {<a name="line-39"></a></span>
+<span id="line-40"><span style="color: green">040</span>        ASTNode tree = (ASTNode) copy();<a name="line-40"></a></span>
+<span id="line-41"><span style="color: green">041</span>        if (children != null) {<a name="line-41"></a></span>
+<span id="line-42"><span style="color: green">042</span>          for (int i = 0; i &lt; children.length; ++i) {<a name="line-42"></a></span>
+<span id="line-43"><span style="color: green">043</span>            ASTNode child = (ASTNode) children[i];<a name="line-43"></a></span>
+<span id="line-44"><span style="color: green">044</span>            if(child != null) {<a name="line-44"></a></span>
+<span id="line-45"><span style="color: green">045</span>              child = child.fullCopy();<a name="line-45"></a></span>
+<span id="line-46"><span style="color: green">046</span>              tree.setChild(child, i);<a name="line-46"></a></span>
+<span id="line-47"><span style="color: green">047</span>            }<a name="line-47"></a></span>
+<span id="line-48"><span style="color: green">048</span>          }<a name="line-48"></a></span>
+<span id="line-49"><span style="color: green">049</span>        }<a name="line-49"></a></span>
+<span id="line-50"><span style="color: green">050</span>        return tree;<a name="line-50"></a></span>
+<span id="line-51"><span style="color: green">051</span>      }<a name="line-51"></a></span>
+<span id="line-52"><span style="color: green">052</span>      /**<a name="line-52"></a></span>
+<span id="line-53"><span style="color: green">053</span>       * @aspect Exercises<a name="line-53"></a></span>
+<span id="line-54"><span style="color: green">054</span>       * @declaredat /home/csz-naf/examples/StateMachine/spec/Exercises.jrag:109<a name="line-54"></a></span>
+<span id="line-55"><span style="color: green">055</span>       */<a name="line-55"></a></span>
+<span id="line-56"><span style="color: green">056</span>      Set&lt;State&gt; asSet(State o) {<a name="line-56"></a></span>
+<span id="line-57"><span style="color: green">057</span>        HashSet&lt;State&gt; result = new HashSet&lt;State&gt;();<a name="line-57"></a></span>
+<span id="line-58"><span style="color: green">058</span>        result.add(o);<a name="line-58"></a></span>
+<span id="line-59"><span style="color: green">059</span>        return result;<a name="line-59"></a></span>
+<span id="line-60"><span style="color: green">060</span>      }<a name="line-60"></a></span>
+<span id="line-61"><span style="color: green">061</span>      /**<a name="line-61"></a></span>
+<span id="line-62"><span style="color: green">062</span>       * @aspect Exercises<a name="line-62"></a></span>
+<span id="line-63"><span style="color: green">063</span>       * @declaredat /home/csz-naf/examples/StateMachine/spec/Exercises.jrag:115<a name="line-63"></a></span>
+<span id="line-64"><span style="color: green">064</span>       */<a name="line-64"></a></span>
+<span id="line-65"><span style="color: green">065</span>      Set&lt;State&gt; union(Set&lt;State&gt; s1, Set&lt;State&gt; s2) {<a name="line-65"></a></span>
+<span id="line-66"><span style="color: green">066</span>        HashSet&lt;State&gt; result = new HashSet&lt;State&gt;();<a name="line-66"></a></span>
+<span id="line-67"><span style="color: green">067</span>        for (State s: s1) result.add(s);<a name="line-67"></a></span>
+<span id="line-68"><span style="color: green">068</span>        for (State s: s2) result.add(s);<a name="line-68"></a></span>
+<span id="line-69"><span style="color: green">069</span>        return result;<a name="line-69"></a></span>
+<span id="line-70"><span style="color: green">070</span>      }<a name="line-70"></a></span>
+<span id="line-71"><span style="color: green">071</span>      /**<a name="line-71"></a></span>
+<span id="line-72"><span style="color: green">072</span>       */<a name="line-72"></a></span>
+<span id="line-73"><span style="color: green">073</span>      public ASTNode() {<a name="line-73"></a></span>
+<span id="line-74"><span style="color: green">074</span>        super();<a name="line-74"></a></span>
+<span id="line-75"><span style="color: green">075</span>        init$Children();<a name="line-75"></a></span>
+<span id="line-76"><span style="color: green">076</span>      }<a name="line-76"></a></span>
+<span id="line-77"><span style="color: green">077</span>      /**<a name="line-77"></a></span>
+<span id="line-78"><span style="color: green">078</span>       * Initializes the child array to the correct size.<a name="line-78"></a></span>
+<span id="line-79"><span style="color: green">079</span>       * Initializes List and Opt nta children.<a name="line-79"></a></span>
+<span id="line-80"><span style="color: green">080</span>       * @apilevel internal<a name="line-80"></a></span>
+<span id="line-81"><span style="color: green">081</span>       * @ast method<a name="line-81"></a></span>
+<span id="line-82"><span style="color: green">082</span>       */<a name="line-82"></a></span>
+<span id="line-83"><span style="color: green">083</span>      public void init$Children() {<a name="line-83"></a></span>
+<span id="line-84"><span style="color: green">084</span>      }<a name="line-84"></a></span>
+<span id="line-85"><span style="color: green">085</span>      /**<a name="line-85"></a></span>
+<span id="line-86"><span style="color: green">086</span>       * @apilevel internal<a name="line-86"></a></span>
+<span id="line-87"><span style="color: green">087</span>       */<a name="line-87"></a></span>
+<span id="line-88"><span style="color: green">088</span>      private int childIndex;<a name="line-88"></a></span>
+<span id="line-89"><span style="color: green">089</span>      /**<a name="line-89"></a></span>
+<span id="line-90"><span style="color: green">090</span>       * @apilevel low-level<a name="line-90"></a></span>
+<span id="line-91"><span style="color: green">091</span>       */<a name="line-91"></a></span>
+<span id="line-92"><span style="color: green">092</span>      public int getIndexOfChild(ASTNode node) {<a name="line-92"></a></span>
+<span id="line-93"><span style="color: green">093</span>        if (node == null) {<a name="line-93"></a></span>
+<span id="line-94"><span style="color: green">094</span>          return -1;<a name="line-94"></a></span>
+<span id="line-95"><span style="color: green">095</span>        }<a name="line-95"></a></span>
+<span id="line-96"><span style="color: green">096</span>        if (node.childIndex &lt; numChildren &amp;&amp; node == children[node.childIndex]) {<a name="line-96"></a></span>
+<span id="line-97"><span style="color: green">097</span>          return node.childIndex;<a name="line-97"></a></span>
+<span id="line-98"><span style="color: green">098</span>        }<a name="line-98"></a></span>
+<span id="line-99"><span style="color: green">099</span>        for(int i = 0; children != null &amp;&amp; i &lt; children.length; i++) {<a name="line-99"></a></span>
+<span id="line-100"><span style="color: green">100</span>          if(children[i] == node) {<a name="line-100"></a></span>
+<span id="line-101"><span style="color: green">101</span>            node.childIndex = i;<a name="line-101"></a></span>
+<span id="line-102"><span style="color: green">102</span>            return i;<a name="line-102"></a></span>
+<span id="line-103"><span style="color: green">103</span>          }<a name="line-103"></a></span>
+<span id="line-104"><span style="color: green">104</span>        }<a name="line-104"></a></span>
+<span id="line-105"><span style="color: green">105</span>        return -1;<a name="line-105"></a></span>
+<span id="line-106"><span style="color: green">106</span>      }<a name="line-106"></a></span>
+<span id="line-107"><span style="color: green">107</span>      /**<a name="line-107"></a></span>
+<span id="line-108"><span style="color: green">108</span>       * @apilevel internal<a name="line-108"></a></span>
+<span id="line-109"><span style="color: green">109</span>       */<a name="line-109"></a></span>
+<span id="line-110"><span style="color: green">110</span>      public static final boolean generatedWithCircularEnabled = true;<a name="line-110"></a></span>
+<span id="line-111"><span style="color: green">111</span>      /**<a name="line-111"></a></span>
+<span id="line-112"><span style="color: green">112</span>       * @apilevel internal<a name="line-112"></a></span>
+<span id="line-113"><span style="color: green">113</span>       */<a name="line-113"></a></span>
+<span id="line-114"><span style="color: green">114</span>      public static final boolean generatedWithCacheCycle = true;<a name="line-114"></a></span>
+<span id="line-115"><span style="color: green">115</span>      /**<a name="line-115"></a></span>
+<span id="line-116"><span style="color: green">116</span>       * @apilevel internal<a name="line-116"></a></span>
+<span id="line-117"><span style="color: green">117</span>       */<a name="line-117"></a></span>
+<span id="line-118"><span style="color: green">118</span>      public static final boolean generatedWithComponentCheck = false;<a name="line-118"></a></span>
+<span id="line-119"><span style="color: green">119</span>      /**<a name="line-119"></a></span>
+<span id="line-120"><span style="color: green">120</span>       * Parent pointer<a name="line-120"></a></span>
+<span id="line-121"><span style="color: green">121</span>       * @apilevel low-level<a name="line-121"></a></span>
+<span id="line-122"><span style="color: green">122</span>       */<a name="line-122"></a></span>
+<span id="line-123"><span style="color: green">123</span>      protected ASTNode parent;<a name="line-123"></a></span>
+<span id="line-124"><span style="color: green">124</span>      /**<a name="line-124"></a></span>
+<span id="line-125"><span style="color: green">125</span>       * Child array<a name="line-125"></a></span>
+<span id="line-126"><span style="color: green">126</span>       * @apilevel low-level<a name="line-126"></a></span>
+<span id="line-127"><span style="color: green">127</span>       */<a name="line-127"></a></span>
+<span id="line-128"><span style="color: green">128</span>      protected ASTNode[] children;<a name="line-128"></a></span>
+<span id="line-129"><span style="color: green">129</span>      /**<a name="line-129"></a></span>
+<span id="line-130"><span style="color: green">130</span>       * @apilevel internal<a name="line-130"></a></span>
+<span id="line-131"><span style="color: green">131</span>       */<a name="line-131"></a></span>
+<span id="line-132"><span style="color: green">132</span>      protected static ASTNode$State state = new ASTNode$State();<a name="line-132"></a></span>
+<span id="line-133"><span style="color: green">133</span>      /**<a name="line-133"></a></span>
+<span id="line-134"><span style="color: green">134</span>       * @apilevel internal<a name="line-134"></a></span>
+<span id="line-135"><span style="color: green">135</span>       */<a name="line-135"></a></span>
+<span id="line-136"><span style="color: green">136</span>      public final ASTNode$State state() {<a name="line-136"></a></span>
+<span id="line-137"><span style="color: green">137</span>        return state;<a name="line-137"></a></span>
+<span id="line-138"><span style="color: green">138</span>      }<a name="line-138"></a></span>
+<span id="line-139"><span style="color: green">139</span>      /**<a name="line-139"></a></span>
+<span id="line-140"><span style="color: green">140</span>       * @apilevel low-level<a name="line-140"></a></span>
+<span id="line-141"><span style="color: green">141</span>       */<a name="line-141"></a></span>
+<span id="line-142"><span style="color: green">142</span>      public T getChild(int i) {<a name="line-142"></a></span>
+<span id="line-143"><span style="color: green">143</span>    <a name="line-143"></a></span>
+<span id="line-144"><span style="color: green">144</span>        // No rewrites<a name="line-144"></a></span>
+<span id="line-145"><span style="color: green">145</span>        ASTNode child = getChildNoTransform(i);<a name="line-145"></a></span>
+<span id="line-146"><span style="color: green">146</span>        return (T) child;<a name="line-146"></a></span>
+<span id="line-147"><span style="color: green">147</span>    <a name="line-147"></a></span>
+<span id="line-148"><span style="color: green">148</span>      }<a name="line-148"></a></span>
+<span id="line-149"><span style="color: green">149</span>      /**<a name="line-149"></a></span>
+<span id="line-150"><span style="color: green">150</span>       * @apilevel low-level<a name="line-150"></a></span>
+<span id="line-151"><span style="color: green">151</span>       */<a name="line-151"></a></span>
+<span id="line-152"><span style="color: green">152</span>      public void addChild(T node) {<a name="line-152"></a></span>
+<span id="line-153"><span style="color: green">153</span>        setChild(node, getNumChildNoTransform());<a name="line-153"></a></span>
+<span id="line-154"><span style="color: green">154</span>      }<a name="line-154"></a></span>
+<span id="line-155"><span style="color: green">155</span>      /**<a name="line-155"></a></span>
+<span id="line-156"><span style="color: green">156</span>       * &lt;p&gt;&lt;em&gt;This method does not invoke AST transformations.&lt;/em&gt;&lt;/p&gt;<a name="line-156"></a></span>
+<span id="line-157"><span style="color: green">157</span>       * @apilevel low-level<a name="line-157"></a></span>
+<span id="line-158"><span style="color: green">158</span>       */<a name="line-158"></a></span>
+<span id="line-159"><span style="color: green">159</span>      public final T getChildNoTransform(int i) {<a name="line-159"></a></span>
+<span id="line-160"><span style="color: green">160</span>        if (children == null) {<a name="line-160"></a></span>
+<span id="line-161"><span style="color: green">161</span>          return null;<a name="line-161"></a></span>
+<span id="line-162"><span style="color: green">162</span>        }<a name="line-162"></a></span>
+<span id="line-163"><span style="color: green">163</span>        T child = (T)children[i];<a name="line-163"></a></span>
+<span id="line-164"><span style="color: green">164</span>        return child;<a name="line-164"></a></span>
+<span id="line-165"><span style="color: green">165</span>      }<a name="line-165"></a></span>
+<span id="line-166"><span style="color: green">166</span>      /**<a name="line-166"></a></span>
+<span id="line-167"><span style="color: green">167</span>       * @apilevel low-level<a name="line-167"></a></span>
+<span id="line-168"><span style="color: green">168</span>       */<a name="line-168"></a></span>
+<span id="line-169"><span style="color: green">169</span>      protected int numChildren;<a name="line-169"></a></span>
+<span id="line-170"><span style="color: green">170</span>      /**<a name="line-170"></a></span>
+<span id="line-171"><span style="color: green">171</span>       * @apilevel low-level<a name="line-171"></a></span>
+<span id="line-172"><span style="color: green">172</span>       */<a name="line-172"></a></span>
+<span id="line-173"><span style="color: green">173</span>      protected int numChildren() {<a name="line-173"></a></span>
+<span id="line-174"><span style="color: green">174</span>        return numChildren;<a name="line-174"></a></span>
+<span id="line-175"><span style="color: green">175</span>      }<a name="line-175"></a></span>
+<span id="line-176"><span style="color: green">176</span>      /**<a name="line-176"></a></span>
+<span id="line-177"><span style="color: green">177</span>       * @apilevel low-level<a name="line-177"></a></span>
+<span id="line-178"><span style="color: green">178</span>       */<a name="line-178"></a></span>
+<span id="line-179"><span style="color: green">179</span>      public int getNumChild() {<a name="line-179"></a></span>
+<span id="line-180"><span style="color: green">180</span>        return numChildren();<a name="line-180"></a></span>
+<span id="line-181"><span style="color: green">181</span>      }<a name="line-181"></a></span>
+<span id="line-182"><span style="color: green">182</span>      /**<a name="line-182"></a></span>
+<span id="line-183"><span style="color: green">183</span>       * &lt;p&gt;&lt;em&gt;This method does not invoke AST transformations.&lt;/em&gt;&lt;/p&gt;<a name="line-183"></a></span>
+<span id="line-184"><span style="color: green">184</span>       * @apilevel low-level<a name="line-184"></a></span>
+<span id="line-185"><span style="color: green">185</span>       */<a name="line-185"></a></span>
+<span id="line-186"><span style="color: green">186</span>      public final int getNumChildNoTransform() {<a name="line-186"></a></span>
+<span id="line-187"><span style="color: green">187</span>        return numChildren();<a name="line-187"></a></span>
+<span id="line-188"><span style="color: green">188</span>      }<a name="line-188"></a></span>
+<span id="line-189"><span style="color: green">189</span>      /**<a name="line-189"></a></span>
+<span id="line-190"><span style="color: green">190</span>       * @apilevel low-level<a name="line-190"></a></span>
+<span id="line-191"><span style="color: green">191</span>       */<a name="line-191"></a></span>
+<span id="line-192"><span style="color: green">192</span>      public void setChild(ASTNode node, int i) {<a name="line-192"></a></span>
+<span id="line-193"><span style="color: green">193</span>        if(children == null) {<a name="line-193"></a></span>
+<span id="line-194"><span style="color: green">194</span>          children = new ASTNode[(i+1&gt;4 || !(this instanceof List))?i+1:4];<a name="line-194"></a></span>
+<span id="line-195"><span style="color: green">195</span>        } else if (i &gt;= children.length) {<a name="line-195"></a></span>
+<span id="line-196"><span style="color: green">196</span>          ASTNode c[] = new ASTNode[i &lt;&lt; 1];<a name="line-196"></a></span>
+<span id="line-197"><span style="color: green">197</span>          System.arraycopy(children, 0, c, 0, children.length);<a name="line-197"></a></span>
+<span id="line-198"><span style="color: green">198</span>          children = c;<a name="line-198"></a></span>
+<span id="line-199"><span style="color: green">199</span>        }<a name="line-199"></a></span>
+<span id="line-200"><span style="color: green">200</span>        children[i] = node;<a name="line-200"></a></span>
+<span id="line-201"><span style="color: green">201</span>        if(i &gt;= numChildren) {<a name="line-201"></a></span>
+<span id="line-202"><span style="color: green">202</span>          numChildren = i+1;<a name="line-202"></a></span>
+<span id="line-203"><span style="color: green">203</span>        }<a name="line-203"></a></span>
+<span id="line-204"><span style="color: green">204</span>        if(node != null) {<a name="line-204"></a></span>
+<span id="line-205"><span style="color: green">205</span>          node.setParent(this);<a name="line-205"></a></span>
+<span id="line-206"><span style="color: green">206</span>          node.childIndex = i;<a name="line-206"></a></span>
+<span id="line-207"><span style="color: green">207</span>        }<a name="line-207"></a></span>
+<span id="line-208"><span style="color: green">208</span>      }<a name="line-208"></a></span>
+<span id="line-209"><span style="color: green">209</span>      /**<a name="line-209"></a></span>
+<span id="line-210"><span style="color: green">210</span>       * @apilevel low-level<a name="line-210"></a></span>
+<span id="line-211"><span style="color: green">211</span>       */<a name="line-211"></a></span>
+<span id="line-212"><span style="color: green">212</span>      public void insertChild(ASTNode node, int i) {<a name="line-212"></a></span>
+<span id="line-213"><span style="color: green">213</span>        if(children == null) {<a name="line-213"></a></span>
+<span id="line-214"><span style="color: green">214</span>          children = new ASTNode[(i+1&gt;4 || !(this instanceof List))?i+1:4];<a name="line-214"></a></span>
+<span id="line-215"><span style="color: green">215</span>          children[i] = node;<a name="line-215"></a></span>
+<span id="line-216"><span style="color: green">216</span>        } else {<a name="line-216"></a></span>
+<span id="line-217"><span style="color: green">217</span>          ASTNode c[] = new ASTNode[children.length + 1];<a name="line-217"></a></span>
+<span id="line-218"><span style="color: green">218</span>          System.arraycopy(children, 0, c, 0, i);<a name="line-218"></a></span>
+<span id="line-219"><span style="color: green">219</span>          c[i] = node;<a name="line-219"></a></span>
+<span id="line-220"><span style="color: green">220</span>          if(i &lt; children.length) {<a name="line-220"></a></span>
+<span id="line-221"><span style="color: green">221</span>            System.arraycopy(children, i, c, i+1, children.length-i);<a name="line-221"></a></span>
+<span id="line-222"><span style="color: green">222</span>            for(int j = i+1; j &lt; c.length; ++j) {<a name="line-222"></a></span>
+<span id="line-223"><span style="color: green">223</span>              if(c[j] != null) {<a name="line-223"></a></span>
+<span id="line-224"><span style="color: green">224</span>                c[j].childIndex = j;<a name="line-224"></a></span>
+<span id="line-225"><span style="color: green">225</span>              }<a name="line-225"></a></span>
+<span id="line-226"><span style="color: green">226</span>            }<a name="line-226"></a></span>
+<span id="line-227"><span style="color: green">227</span>          }<a name="line-227"></a></span>
+<span id="line-228"><span style="color: green">228</span>          children = c;<a name="line-228"></a></span>
+<span id="line-229"><span style="color: green">229</span>        }<a name="line-229"></a></span>
+<span id="line-230"><span style="color: green">230</span>        numChildren++;<a name="line-230"></a></span>
+<span id="line-231"><span style="color: green">231</span>        if(node != null) {<a name="line-231"></a></span>
+<span id="line-232"><span style="color: green">232</span>          node.setParent(this);<a name="line-232"></a></span>
+<span id="line-233"><span style="color: green">233</span>          node.childIndex = i;<a name="line-233"></a></span>
+<span id="line-234"><span style="color: green">234</span>        }<a name="line-234"></a></span>
+<span id="line-235"><span style="color: green">235</span>      }<a name="line-235"></a></span>
+<span id="line-236"><span style="color: green">236</span>      /**<a name="line-236"></a></span>
+<span id="line-237"><span style="color: green">237</span>       * @apilevel low-level<a name="line-237"></a></span>
+<span id="line-238"><span style="color: green">238</span>       */<a name="line-238"></a></span>
+<span id="line-239"><span style="color: green">239</span>      public void removeChild(int i) {<a name="line-239"></a></span>
+<span id="line-240"><span style="color: green">240</span>        if(children != null) {<a name="line-240"></a></span>
+<span id="line-241"><span style="color: green">241</span>          ASTNode child = (ASTNode) children[i];<a name="line-241"></a></span>
+<span id="line-242"><span style="color: green">242</span>          if(child != null) {<a name="line-242"></a></span>
+<span id="line-243"><span style="color: green">243</span>            child.parent = null;<a name="line-243"></a></span>
+<span id="line-244"><span style="color: green">244</span>            child.childIndex = -1;<a name="line-244"></a></span>
+<span id="line-245"><span style="color: green">245</span>          }<a name="line-245"></a></span>
+<span id="line-246"><span style="color: green">246</span>          // Adding a check of this instance to make sure its a List, a move of children doesn't make<a name="line-246"></a></span>
+<span id="line-247"><span style="color: green">247</span>          // any sense for a node unless its a list. Also, there is a problem if a child of a non-List node is removed<a name="line-247"></a></span>
+<span id="line-248"><span style="color: green">248</span>          // and siblings are moved one step to the right, with null at the end.<a name="line-248"></a></span>
+<span id="line-249"><span style="color: green">249</span>          if (this instanceof List || this instanceof Opt) {<a name="line-249"></a></span>
+<span id="line-250"><span style="color: green">250</span>            System.arraycopy(children, i+1, children, i, children.length-i-1);<a name="line-250"></a></span>
+<span id="line-251"><span style="color: green">251</span>            children[children.length-1] = null;<a name="line-251"></a></span>
+<span id="line-252"><span style="color: green">252</span>            numChildren--;<a name="line-252"></a></span>
+<span id="line-253"><span style="color: green">253</span>            // fix child indices<a name="line-253"></a></span>
+<span id="line-254"><span style="color: green">254</span>            for(int j = i; j &lt; numChildren; ++j) {<a name="line-254"></a></span>
+<span id="line-255"><span style="color: green">255</span>              if(children[j] != null) {<a name="line-255"></a></span>
+<span id="line-256"><span style="color: green">256</span>                child = (ASTNode) children[j];<a name="line-256"></a></span>
+<span id="line-257"><span style="color: green">257</span>                child.childIndex = j;<a name="line-257"></a></span>
+<span id="line-258"><span style="color: green">258</span>              }<a name="line-258"></a></span>
+<span id="line-259"><span style="color: green">259</span>            }<a name="line-259"></a></span>
+<span id="line-260"><span style="color: green">260</span>          } else {<a name="line-260"></a></span>
+<span id="line-261"><span style="color: green">261</span>            children[i] = null;<a name="line-261"></a></span>
+<span id="line-262"><span style="color: green">262</span>          }<a name="line-262"></a></span>
+<span id="line-263"><span style="color: green">263</span>        }<a name="line-263"></a></span>
+<span id="line-264"><span style="color: green">264</span>      }<a name="line-264"></a></span>
+<span id="line-265"><span style="color: green">265</span>      /**<a name="line-265"></a></span>
+<span id="line-266"><span style="color: green">266</span>       * @apilevel low-level<a name="line-266"></a></span>
+<span id="line-267"><span style="color: green">267</span>       */<a name="line-267"></a></span>
+<span id="line-268"><span style="color: green">268</span>      public ASTNode getParent() {<a name="line-268"></a></span>
+<span id="line-269"><span style="color: green">269</span>        ;<a name="line-269"></a></span>
+<span id="line-270"><span style="color: green">270</span>        return (ASTNode) parent;<a name="line-270"></a></span>
+<span id="line-271"><span style="color: green">271</span>      }<a name="line-271"></a></span>
+<span id="line-272"><span style="color: green">272</span>      /**<a name="line-272"></a></span>
+<span id="line-273"><span style="color: green">273</span>       * @apilevel low-level<a name="line-273"></a></span>
+<span id="line-274"><span style="color: green">274</span>       */<a name="line-274"></a></span>
+<span id="line-275"><span style="color: green">275</span>      public void setParent(ASTNode node) {<a name="line-275"></a></span>
+<span id="line-276"><span style="color: green">276</span>        parent = node;<a name="line-276"></a></span>
+<span id="line-277"><span style="color: green">277</span>      }<a name="line-277"></a></span>
+<span id="line-278"><span style="color: green">278</span>      /**<a name="line-278"></a></span>
+<span id="line-279"><span style="color: green">279</span>       * Line and column information.<a name="line-279"></a></span>
+<span id="line-280"><span style="color: green">280</span>       */<a name="line-280"></a></span>
+<span id="line-281"><span style="color: green">281</span>      protected int startLine;<a name="line-281"></a></span>
+<span id="line-282"><span style="color: green">282</span>      /**<a name="line-282"></a></span>
+<span id="line-283"><span style="color: green">283</span>       */<a name="line-283"></a></span>
+<span id="line-284"><span style="color: green">284</span>      protected short startColumn;<a name="line-284"></a></span>
+<span id="line-285"><span style="color: green">285</span>      /**<a name="line-285"></a></span>
+<span id="line-286"><span style="color: green">286</span>       */<a name="line-286"></a></span>
+<span id="line-287"><span style="color: green">287</span>      protected int endLine;<a name="line-287"></a></span>
+<span id="line-288"><span style="color: green">288</span>      /**<a name="line-288"></a></span>
+<span id="line-289"><span style="color: green">289</span>       */<a name="line-289"></a></span>
+<span id="line-290"><span style="color: green">290</span>      protected short endColumn;<a name="line-290"></a></span>
+<span id="line-291"><span style="color: green">291</span>      /**<a name="line-291"></a></span>
+<span id="line-292"><span style="color: green">292</span>       */<a name="line-292"></a></span>
+<span id="line-293"><span style="color: green">293</span>      public int getStartLine() {<a name="line-293"></a></span>
+<span id="line-294"><span style="color: green">294</span>        return startLine;<a name="line-294"></a></span>
+<span id="line-295"><span style="color: green">295</span>      }<a name="line-295"></a></span>
+<span id="line-296"><span style="color: green">296</span>      /**<a name="line-296"></a></span>
+<span id="line-297"><span style="color: green">297</span>       */<a name="line-297"></a></span>
+<span id="line-298"><span style="color: green">298</span>      public short getStartColumn() {<a name="line-298"></a></span>
+<span id="line-299"><span style="color: green">299</span>        return startColumn;<a name="line-299"></a></span>
+<span id="line-300"><span style="color: green">300</span>      }<a name="line-300"></a></span>
+<span id="line-301"><span style="color: green">301</span>      /**<a name="line-301"></a></span>
+<span id="line-302"><span style="color: green">302</span>       */<a name="line-302"></a></span>
+<span id="line-303"><span style="color: green">303</span>      public int getEndLine() {<a name="line-303"></a></span>
+<span id="line-304"><span style="color: green">304</span>        return endLine;<a name="line-304"></a></span>
+<span id="line-305"><span style="color: green">305</span>      }<a name="line-305"></a></span>
+<span id="line-306"><span style="color: green">306</span>      /**<a name="line-306"></a></span>
+<span id="line-307"><span style="color: green">307</span>       */<a name="line-307"></a></span>
+<span id="line-308"><span style="color: green">308</span>      public short getEndColumn() {<a name="line-308"></a></span>
+<span id="line-309"><span style="color: green">309</span>        return endColumn;<a name="line-309"></a></span>
+<span id="line-310"><span style="color: green">310</span>      }<a name="line-310"></a></span>
+<span id="line-311"><span style="color: green">311</span>      /**<a name="line-311"></a></span>
+<span id="line-312"><span style="color: green">312</span>       */<a name="line-312"></a></span>
+<span id="line-313"><span style="color: green">313</span>      public void setStart(int startLine, short startColumn) {<a name="line-313"></a></span>
+<span id="line-314"><span style="color: green">314</span>        this.startLine = startLine;<a name="line-314"></a></span>
+<span id="line-315"><span style="color: green">315</span>        this.startColumn = startColumn;<a name="line-315"></a></span>
+<span id="line-316"><span style="color: green">316</span>      }<a name="line-316"></a></span>
+<span id="line-317"><span style="color: green">317</span>      /**<a name="line-317"></a></span>
+<span id="line-318"><span style="color: green">318</span>       */<a name="line-318"></a></span>
+<span id="line-319"><span style="color: green">319</span>      public void setEnd(int endLine, short endColumn) {<a name="line-319"></a></span>
+<span id="line-320"><span style="color: green">320</span>        this.endLine = endLine;<a name="line-320"></a></span>
+<span id="line-321"><span style="color: green">321</span>        this.endColumn = endColumn;<a name="line-321"></a></span>
+<span id="line-322"><span style="color: green">322</span>      }<a name="line-322"></a></span>
+<span id="line-323"><span style="color: green">323</span>      /**<a name="line-323"></a></span>
+<span id="line-324"><span style="color: green">324</span>       * @apilevel low-level<a name="line-324"></a></span>
+<span id="line-325"><span style="color: green">325</span>       */<a name="line-325"></a></span>
+<span id="line-326"><span style="color: green">326</span>      public java.util.Iterator&lt;T&gt; iterator() {<a name="line-326"></a></span>
+<span id="line-327"><span style="color: green">327</span>        return new java.util.Iterator&lt;T&gt;() {<a name="line-327"></a></span>
+<span id="line-328"><span style="color: green">328</span>          private int counter = 0;<a name="line-328"></a></span>
+<span id="line-329"><span style="color: green">329</span>          public boolean hasNext() {<a name="line-329"></a></span>
+<span id="line-330"><span style="color: green">330</span>            return counter &lt; getNumChild();<a name="line-330"></a></span>
+<span id="line-331"><span style="color: green">331</span>          }<a name="line-331"></a></span>
+<span id="line-332"><span style="color: green">332</span>          public T next() {<a name="line-332"></a></span>
+<span id="line-333"><span style="color: green">333</span>            if(hasNext())<a name="line-333"></a></span>
+<span id="line-334"><span style="color: green">334</span>              return (T)getChild(counter++);<a name="line-334"></a></span>
+<span id="line-335"><span style="color: green">335</span>            else<a name="line-335"></a></span>
+<span id="line-336"><span style="color: green">336</span>              return null;<a name="line-336"></a></span>
+<span id="line-337"><span style="color: green">337</span>          }<a name="line-337"></a></span>
+<span id="line-338"><span style="color: green">338</span>          public void remove() {<a name="line-338"></a></span>
+<span id="line-339"><span style="color: green">339</span>            throw new UnsupportedOperationException();<a name="line-339"></a></span>
+<span id="line-340"><span style="color: green">340</span>          }<a name="line-340"></a></span>
+<span id="line-341"><span style="color: green">341</span>        };<a name="line-341"></a></span>
+<span id="line-342"><span style="color: green">342</span>      }<a name="line-342"></a></span>
+<span id="line-343"><span style="color: green">343</span>      /**<a name="line-343"></a></span>
+<span id="line-344"><span style="color: green">344</span>       * @apilevel low-level<a name="line-344"></a></span>
+<span id="line-345"><span style="color: green">345</span>       */<a name="line-345"></a></span>
+<span id="line-346"><span style="color: green">346</span>      public void flushCache() {<a name="line-346"></a></span>
+<span id="line-347"><span style="color: green">347</span>      }<a name="line-347"></a></span>
+<span id="line-348"><span style="color: green">348</span>      /**<a name="line-348"></a></span>
+<span id="line-349"><span style="color: green">349</span>       * @apilevel internal<a name="line-349"></a></span>
+<span id="line-350"><span style="color: green">350</span>       */<a name="line-350"></a></span>
+<span id="line-351"><span style="color: green">351</span>      public void flushCollectionCache() {<a name="line-351"></a></span>
+<span id="line-352"><span style="color: green">352</span>      }<a name="line-352"></a></span>
+<span id="line-353"><span style="color: green">353</span>      /**<a name="line-353"></a></span>
+<span id="line-354"><span style="color: green">354</span>       * @aspect &lt;NoAspect&gt;<a name="line-354"></a></span>
+<span id="line-355"><span style="color: green">355</span>       * @declaredat /home/csz-naf/examples/StateMachine/spec/Exercises.jrag:66<a name="line-355"></a></span>
+<span id="line-356"><span style="color: green">356</span>       */<a name="line-356"></a></span>
+<span id="line-357"><span style="color: green">357</span>        protected void collect_contributors_StateMachine_numberOfTransitionsColl() {<a name="line-357"></a></span>
+<span id="line-358"><span style="color: green">358</span>        for(int i = 0; i &lt; getNumChild(); i++) {<a name="line-358"></a></span>
+<span id="line-359"><span style="color: green">359</span>          getChild(i).collect_contributors_StateMachine_numberOfTransitionsColl();<a name="line-359"></a></span>
+<span id="line-360"><span style="color: green">360</span>        }<a name="line-360"></a></span>
+<span id="line-361"><span style="color: green">361</span>      }<a name="line-361"></a></span>
+<span id="line-362"><span style="color: green">362</span>      protected void contributeTo_StateMachine_StateMachine_numberOfTransitionsColl(Counter collection) {<a name="line-362"></a></span>
+<span id="line-363"><span style="color: green">363</span>      }<a name="line-363"></a></span>
+<span id="line-364"><span style="color: green">364</span>    <a name="line-364"></a></span>
+<span id="line-365"><span style="color: green">365</span>      /**<a name="line-365"></a></span>
+<span id="line-366"><span style="color: green">366</span>       * @aspect &lt;NoAspect&gt;<a name="line-366"></a></span>
+<span id="line-367"><span style="color: green">367</span>       * @declaredat /home/csz-naf/examples/StateMachine/spec/Exercises.jrag:83<a name="line-367"></a></span>
+<span id="line-368"><span style="color: green">368</span>       */<a name="line-368"></a></span>
+<span id="line-369"><span style="color: green">369</span>        protected void collect_contributors_StateMachine_errors() {<a name="line-369"></a></span>
+<span id="line-370"><span style="color: green">370</span>        for(int i = 0; i &lt; getNumChild(); i++) {<a name="line-370"></a></span>
+<span id="line-371"><span style="color: green">371</span>          getChild(i).collect_contributors_StateMachine_errors();<a name="line-371"></a></span>
+<span id="line-372"><span style="color: green">372</span>        }<a name="line-372"></a></span>
+<span id="line-373"><span style="color: green">373</span>      }<a name="line-373"></a></span>
+<span id="line-374"><span style="color: green">374</span>      protected void contributeTo_StateMachine_StateMachine_errors(Set&lt;String&gt; collection) {<a name="line-374"></a></span>
+<span id="line-375"><span style="color: green">375</span>      }<a name="line-375"></a></span>
+<span id="line-376"><span style="color: green">376</span>    <a name="line-376"></a></span>
+<span id="line-377"><span style="color: green">377</span>      /**<a name="line-377"></a></span>
+<span id="line-378"><span style="color: green">378</span>       * @aspect &lt;NoAspect&gt;<a name="line-378"></a></span>
+<span id="line-379"><span style="color: green">379</span>       * @declaredat /home/csz-naf/examples/StateMachine/spec/Exercises.jrag:48<a name="line-379"></a></span>
+<span id="line-380"><span style="color: green">380</span>       */<a name="line-380"></a></span>
+<span id="line-381"><span style="color: green">381</span>        protected void collect_contributors_State_altSuccessors() {<a name="line-381"></a></span>
+<span id="line-382"><span style="color: green">382</span>        for(int i = 0; i &lt; getNumChild(); i++) {<a name="line-382"></a></span>
+<span id="line-383"><span style="color: green">383</span>          getChild(i).collect_contributors_State_altSuccessors();<a name="line-383"></a></span>
+<span id="line-384"><span style="color: green">384</span>        }<a name="line-384"></a></span>
+<span id="line-385"><span style="color: green">385</span>      }<a name="line-385"></a></span>
+<span id="line-386"><span style="color: green">386</span>      protected void contributeTo_State_State_altSuccessors(Set&lt;State&gt; collection) {<a name="line-386"></a></span>
+<span id="line-387"><span style="color: green">387</span>      }<a name="line-387"></a></span>
+<span id="line-388"><span style="color: green">388</span>    <a name="line-388"></a></span>
+<span id="line-389"><span style="color: green">389</span>      /**<a name="line-389"></a></span>
+<span id="line-390"><span style="color: green">390</span>       * @aspect &lt;NoAspect&gt;<a name="line-390"></a></span>
+<span id="line-391"><span style="color: green">391</span>       * @declaredat /home/csz-naf/examples/StateMachine/spec/Exercises.jrag:57<a name="line-391"></a></span>
+<span id="line-392"><span style="color: green">392</span>       */<a name="line-392"></a></span>
+<span id="line-393"><span style="color: green">393</span>        protected void collect_contributors_State_predecessors() {<a name="line-393"></a></span>
+<span id="line-394"><span style="color: green">394</span>        for(int i = 0; i &lt; getNumChild(); i++) {<a name="line-394"></a></span>
+<span id="line-395"><span style="color: green">395</span>          getChild(i).collect_contributors_State_predecessors();<a name="line-395"></a></span>
+<span id="line-396"><span style="color: green">396</span>        }<a name="line-396"></a></span>
+<span id="line-397"><span style="color: green">397</span>      }<a name="line-397"></a></span>
+<span id="line-398"><span style="color: green">398</span>      protected void contributeTo_State_State_predecessors(Set&lt;State&gt; collection) {<a name="line-398"></a></span>
+<span id="line-399"><span style="color: green">399</span>      }<a name="line-399"></a></span>
+<span id="line-400"><span style="color: green">400</span>    <a name="line-400"></a></span>
+<span id="line-401"><span style="color: green">401</span>      /**<a name="line-401"></a></span>
+<span id="line-402"><span style="color: green">402</span>       * @aspect &lt;NoAspect&gt;<a name="line-402"></a></span>
+<span id="line-403"><span style="color: green">403</span>       * @declaredat /home/csz-naf/examples/StateMachine/spec/Exercises.jrag:102<a name="line-403"></a></span>
+<span id="line-404"><span style="color: green">404</span>       */<a name="line-404"></a></span>
+<span id="line-405"><span style="color: green">405</span>        protected void collect_contributors_State_altReachable() {<a name="line-405"></a></span>
+<span id="line-406"><span style="color: green">406</span>        for(int i = 0; i &lt; getNumChild(); i++) {<a name="line-406"></a></span>
+<span id="line-407"><span style="color: green">407</span>          getChild(i).collect_contributors_State_altReachable();<a name="line-407"></a></span>
+<span id="line-408"><span style="color: green">408</span>        }<a name="line-408"></a></span>
+<span id="line-409"><span style="color: green">409</span>      }<a name="line-409"></a></span>
+<span id="line-410"><span style="color: green">410</span>      protected void contributeTo_State_State_altReachable(Set&lt;State&gt; collection) {<a name="line-410"></a></span>
+<span id="line-411"><span style="color: green">411</span>      }<a name="line-411"></a></span>
+<span id="line-412"><span style="color: green">412</span>    <a name="line-412"></a></span>
+<span id="line-413"><span style="color: green">413</span>      /**<a name="line-413"></a></span>
+<span id="line-414"><span style="color: green">414</span>       * @aspect &lt;NoAspect&gt;<a name="line-414"></a></span>
+<span id="line-415"><span style="color: green">415</span>       * @declaredat /home/csz-naf/examples/StateMachine/spec/Graph.jrag:6<a name="line-415"></a></span>
+<span id="line-416"><span style="color: green">416</span>       */<a name="line-416"></a></span>
+<span id="line-417"><span style="color: green">417</span>        protected void collect_contributors_State_transitions() {<a name="line-417"></a></span>
+<span id="line-418"><span style="color: green">418</span>        for(int i = 0; i &lt; getNumChild(); i++) {<a name="line-418"></a></span>
+<span id="line-419"><span style="color: green">419</span>          getChild(i).collect_contributors_State_transitions();<a name="line-419"></a></span>
+<span id="line-420"><span style="color: green">420</span>        }<a name="line-420"></a></span>
+<span id="line-421"><span style="color: green">421</span>      }<a name="line-421"></a></span>
+<span id="line-422"><span style="color: green">422</span>      protected void contributeTo_State_State_transitions(Set&lt;Transition&gt; collection) {<a name="line-422"></a></span>
+<span id="line-423"><span style="color: green">423</span>      }<a name="line-423"></a></span>
+<span id="line-424"><span style="color: green">424</span>    <a name="line-424"></a></span>
+<span id="line-425"><span style="color: green">425</span>      /**<a name="line-425"></a></span>
+<span id="line-426"><span style="color: green">426</span>       * @apilevel internal<a name="line-426"></a></span>
+<span id="line-427"><span style="color: green">427</span>       */<a name="line-427"></a></span>
+<span id="line-428"><span style="color: green">428</span>      public State Define_State_lookupForward(ASTNode caller, ASTNode child, String label) {<a name="line-428"></a></span>
+<span id="line-429"><span style="color: green">429</span>        return getParent().Define_State_lookupForward(this, caller, label);<a name="line-429"></a></span>
+<span id="line-430"><span style="color: green">430</span>      }<a name="line-430"></a></span>
+<span id="line-431"><span style="color: green">431</span>      /**<a name="line-431"></a></span>
+<span id="line-432"><span style="color: green">432</span>       * @apilevel internal<a name="line-432"></a></span>
+<span id="line-433"><span style="color: green">433</span>       */<a name="line-433"></a></span>
+<span id="line-434"><span style="color: green">434</span>      public Set&lt;Transition&gt; Define_Set_Transition__transitionsOf(ASTNode caller, ASTNode child, State s) {<a name="line-434"></a></span>
+<span id="line-435"><span style="color: green">435</span>        return getParent().Define_Set_Transition__transitionsOf(this, caller, s);<a name="line-435"></a></span>
+<span id="line-436"><span style="color: green">436</span>      }<a name="line-436"></a></span>
+<span id="line-437"><span style="color: green">437</span>      /**<a name="line-437"></a></span>
+<span id="line-438"><span style="color: green">438</span>       * @apilevel internal<a name="line-438"></a></span>
+<span id="line-439"><span style="color: green">439</span>       */<a name="line-439"></a></span>
+<span id="line-440"><span style="color: green">440</span>      public StateMachine Define_StateMachine_theMachine(ASTNode caller, ASTNode child) {<a name="line-440"></a></span>
+<span id="line-441"><span style="color: green">441</span>        return getParent().Define_StateMachine_theMachine(this, caller);<a name="line-441"></a></span>
+<span id="line-442"><span style="color: green">442</span>      }<a name="line-442"></a></span>
+<span id="line-443"><span style="color: green">443</span>      /**<a name="line-443"></a></span>
+<span id="line-444"><span style="color: green">444</span>       * @apilevel internal<a name="line-444"></a></span>
+<span id="line-445"><span style="color: green">445</span>       */<a name="line-445"></a></span>
+<span id="line-446"><span style="color: green">446</span>      public State Define_State_lookup(ASTNode caller, ASTNode child, String label) {<a name="line-446"></a></span>
+<span id="line-447"><span style="color: green">447</span>        return getParent().Define_State_lookup(this, caller, label);<a name="line-447"></a></span>
+<span id="line-448"><span style="color: green">448</span>      }<a name="line-448"></a></span>
+<span id="line-449"><span style="color: green">449</span>    }<a name="line-449"></a></span>
+</PRE>
+</BODY>
+</HTML>

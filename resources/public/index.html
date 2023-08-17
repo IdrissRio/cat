@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Callgraph Visualization</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
+	<script src="https://ialab.it.monash.edu/webcola/cola.min.js"></script>
+	<script src="https://unpkg.com/cytoscape-cola@2.0.1/cytoscape-cola.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+	<style>
+		body,
+		html {
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			background-color: #333;
+			color: white;
+		}
+
+		body {
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			background-color: #333;
+			color: white;
+		}
+
+		.menu-button {
+			font-size: 24px;
+			font-family: 'Courier New', monospace;
+			cursor: pointer;
+			color: white;
+			padding: 20px;
+			position: fixed;
+			left: 0;
+			top: 0;
+			z-index: 1000;
+		}
+
+		.menu-button i {
+			margin-right: 5px;
+			transition: transform 0.3s ease-in-out;
+
+		}
+
+
+
+		.hamburger-menu {
+			position: fixed;
+			left: -251px;
+			top: 0;
+			width: 250px;
+			height: 100%;
+			background-color: #282828be;
+			overflow-x: hidden;
+			transition: 0.5s;
+			z-index: 999;
+			border-right: 1px solid #ccc;
+			/* Lower z-index than the menu button */
+		}
+
+		.menu-item {
+			padding: 10px 20px;
+			display: flex;
+			border-bottom: 1px solid #ccc;
+
+		}
+
+		.menu-item:first-child {
+			margin-top: 50px;
+
+		}
+
+		.menu-item:last-child {
+			border-bottom: none;
+
+		}
+
+		.menu-content {
+			padding: 20px;
+			margin-top: 50px;
+		}
+
+		.container {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 10px;
+			background-color: #333;
+			color: white;
+		}
+
+		.node-count {
+			font-size: 16px;
+			margin-right: 20px;
+		}
+
+		#searchInput {
+			padding: 5px;
+			margin-right: 10px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+		}
+
+		#searchButton {
+			padding: 6px 12px;
+			background-color: #007bff;
+			color: white;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+		}
+
+		#showCircularNodesCheckbox,
+		#reachabilityCheckbox {
+			margin-right: 10px;
+		}
+
+		#layoutDropdown {
+			padding: 5px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+		}
+
+		#cy {
+			width: 100vw;
+			height: calc(100vh);
+			position: absolute;
+			top: 0;
+			left: 0;
+			background-color: #333;
+			z-index: 0;
+		}
+
+		.input-section {
+			width: 90%;
+			margin-top: 20px;
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			background-color: #333;
+		}
+
+		.input-section h2 {
+			margin: 0;
+			font-size: 18px;
+		}
+
+		#inputTextarea {
+			width: 98%;
+			padding: 5px;
+			margin-top: 5px;
+		}
+
+		#processButton {
+			margin-top: 5px;
+			padding: 5px 10px;
+			background-color: #337ab7;
+			color: #fff;
+			border: none;
+			border-radius: 3px;
+			cursor: pointer;
+		}
+
+
+
+
+		.tooltip {
+			position: absolute;
+			background-color: black;
+			color: white;
+			padding: 5px;
+			border-radius: 5px;
+			font-size: 12px;
+			pointer-events: none;
+			opacity: 0;
+			transition: opacity 0.3s;
+			z-index: 9999;
+			pointer-events: auto;
+		}
+
+		.statistics {
+			margin-top: 10px;
+		}
+
+		.statistic {
+			display: flex;
+			justify-content: space-between;
+			margin-bottom: 5px;
+		}
+
+		.statistic-label {
+			font-weight: bold;
+			margin-right: 5px;
+		}
+
+		.node-count {
+			/* position: absolute;
+	top: 150px;
+	left: 20px; */
+			font-size: 16px;
+			background-color: rgba(0, 0, 0, 0.7);
+			color: white;
+			padding: 5px 10px;
+			border-radius: 5px;
+			box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+		}
+
+
+		.legend-container {
+			margin-top: 20px;
+		}
+
+		.legend-item {
+			display: flex;
+			align-items: center;
+			margin-bottom: 5px;
+		}
+
+		.legend-label {
+			font-style: italic;
+			font-size: 30px;
+			margin-bottom: 5px;
+		}
+
+		.legend-node {
+			width: 35px;
+			/* Adjust the size as needed */
+			height: 35px;
+			/* Adjust the size as needed */
+			border: 2px solid transparent;
+			margin-right: 5px;
+			border-radius: 50%;
+		}
+
+
+		.legend-item span {
+			font-size: 12px;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="menu-button" id="menuButton"><i class="fas fa-cog"></i> Settings</div>
+	<div class="hamburger-menu" id="hamburgerMenu">
+
+		<div class="menu-items">
+			<div class="menu-item">
+				<input type="text" id="searchInput" placeholder="Enter Node ID">
+				<button id="searchButton">Search</button>
+			</div>
+			<div class="menu-item">
+				<input type="radio" id="showNonCachableAttributes" name="showAttributes" value="nonCachable">
+				<label for="showNonCachableAttributes">Show Non Cachable Attributes</label>
+				<input type="radio" id="showHeatmap" name="showAttributes" value="heatmap">
+				<label for="showHeatmap">Show Heatmap</label>
+			</div>
+
+			<div class="menu-item">
+				<select id="layoutDropdown">
+					<option value="concentric">Concentric Layout</option>
+					<option value="cola">Cola Layout</option>
+					<option value="cose">Cose Layout</option>
+					<option value="breadthfirst">Breadthfirst Layout</option>
+					<option value="circle">Circle Layout</option>
+					<option value="grid">Grid Layout</option>
+				</select>
+			</div>
+			<div class="menu-item">
+				<input type="checkbox" id="reachabilityCheckbox" checked>
+				<label for="reachabilityCheckbox">Reachability/SCC</label>
+			</div>
+			<div class="statistics">
+				<div class="statistic">
+					<span class="statistic-label">Number of Nodes:</span>
+					<span id="nodeCount">0</span>
+				</div>
+				<div class="statistic">
+					<span class="statistic-label">Number of Edges:</span>
+					<span id="edgeCount">0</span>
+				</div>
+				<div class="statistic">
+					<span class="statistic-label">Number of "syn" Nodes:</span>
+					<span id="kindSynNodeCount">0</span>
+				</div>
+				<div class="statistic">
+					<span class="statistic-label">Number of "inh" Nodes:</span>
+					<span id="kindInhNodeCount">0</span>
+				</div>
+				<div class="statistic">
+					<span class="statistic-label">Number of "circular" Nodes:</span>
+					<span id="kindCircularNodeCount">0</span>
+				</div>
+				<div class="statistic">
+					<span class="statistic-label">Number of "collection" Nodes:</span>
+					<span id="kindCollectionNodeCount">0</span>
+				</div>
+			</div>
+			<div class="input-section">
+				<h2>Upload JSON File</h2>
+				<input type="file" id="jsonFileInput">
+				<div id="indicator"></div>
+			</div>
+			<div id="legend" class="legend-container">
+				<div class="legend-label">Legend</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="cy"></div>
+	<script>
+		const searchInput = document.getElementById("searchInput");
+		const searchButton = document.getElementById("searchButton");
+
+
+
+		// Add hover event
+		const cy = cytoscape({
+			container: document.getElementById("cy"),
+			elements: [],
+			style: [
+				{
+					selector: "node",
+					style: {
+						"background-color": "white",
+						"width": "20px",
+						"height": "20px",
+						"label": "data(id)",
+						"font-family": "sans-serif",
+						"font-size": "7px",
+						"color": "white",
+						"text-valign": "bottom",
+						"text-background-color": "black", // Set the background color for label
+						"text-background-opacity": 0.7, // Full opacity
+						"text-background-padding": "2px", // Padding around the label
+						"text-background-shape": "roundrectangle", // Shape of the background
+						"text-background-padding": "2px", // Padding around the label
+					}
+				},
+				{
+					selector: ".syn",
+					style: {
+						"background-color": "rgb(91, 154, 139)",
+					}
+				},
+				{
+					selector: ".inh",
+					style: {
+						"background-color": "rgb(247, 233, 135)",
+					}
+				},
+				{
+					selector: ".collection",
+					style: {
+						"border-color": "red",
+						"border-width": "2px",
+						"border-style": "solid"
+					}
+				}, {
+					selector: ".circular",
+					style: {
+						"background-color": "rgb(178, 6, 0)",
+						"color": "white",
+						"border-color": "rgb(178, 6, 0)",
+						"border-width": "2px",
+						"border-style": "solid"
+					}
+				}
+				,
+				{
+					selector: "edge",
+					style: {
+						"line-color": "#aaa",
+						"target-arrow-color": "#aaa",
+						"target-arrow-shape": "triangle",
+						"width": 0.5,
+						"curve-style": "straight",
+						"arrow-scale": 0.5
+					}
+				}, {
+					selector: ".highlighted",
+					style: {
+						"border-color": "rgba(124, 166, 104, 0.9)",
+						"border-width": "2px",
+						"border-style": "solid"
+					}
+				}, {
+					selector: ".hidden",
+					style: {
+						"display": "none",
+					}
+				}
+			],
+		});
+
+		searchButton.addEventListener("click", () => {
+			const nodeIdToSearch = searchInput.value.trim();
+			if (nodeIdToSearch) {
+				const nodeToHighlight = cy.$(`[id="${nodeIdToSearch}"]`);
+				if (nodeToHighlight.length > 0) {
+					cy.elements().removeClass("highlighted");
+					nodeToHighlight.addClass("highlighted");
+					cy.center(nodeToHighlight);
+				}
+			}
+		});
+
+		const showNonCachableAttributesRadio = document.getElementById("showNonCachableAttributes");
+		showNonCachableAttributesRadio.addEventListener("change", () => {
+			if (showNonCachableAttributesRadio.checked) {
+				// Loop through nodes to determine if they are circular
+				cy.nodes().forEach(node => {
+					const sccId = node.data("sccId");
+					const hasSelfLoop = node.edgesWith(node).length > 0;
+					if (sccNodesMap.get(sccId).length > 1 || hasSelfLoop) {
+
+						node.addClass("circular");
+					}
+				});
+			} else {
+				// Remove circular class from all nodes
+				cy.nodes().removeClass("circular");
+			}
+		});
+		const showHeatmapRadio = document.getElementById("showHeatmap");
+		showHeatmapRadio.addEventListener("change", () => {
+			if (showHeatmapRadio.checked) {
+				// Find the maximum evaluation value among all nodes
+				let maxEvaluation = 0;
+				cy.nodes().forEach(node => {
+					const evaluation = node.data("evaluation");
+					if (evaluation == 0) {
+						node.addClass("hidden");
+					}
+					if (evaluation > maxEvaluation) {
+						maxEvaluation = evaluation;
+					}
+				});
+
+				// Define a color scale for the heatmap
+				const colorScale = chroma.scale(['white', 'green', 'yellow', 'red']).domain([0, maxEvaluation]);
+
+				// Apply heatmap styling to nodes based on evaluation values
+				cy.nodes().forEach(node => {
+					const evaluation = node.data("evaluation");
+
+					const color = colorScale(evaluation).hex();
+					node.style({
+						"background-color": color
+					});
+
+				});
+			} else {
+				// Reset styles when heatmap is unchecked
+				cy.nodes().forEach(node => {
+					node.style({
+						"background-color": "" // Reset background color
+					});
+				});
+			}
+		});
+
+
+
+
+
+
+		const sccNodesMap = new Map();
+
+		// Fetch and visualize the callgraph when the page loads
+		fetch("/getCallgraphData")
+			.then(response => response.json())
+			.then(callgraphData => {
+				// print on the console the response.json
+				console.log(callgraphData);
+				callgraphData.nodes.forEach(node => {
+					const sccId = node.sccId;
+					if (!sccNodesMap.has(sccId)) {
+						sccNodesMap.set(sccId, []);
+					}
+					sccNodesMap.get(sccId).push(node.methodName);
+					cy.add({ data: { id: node.methodName, sccId: node.sccId, kind: node.kind, evaluation: 0 } });
+					// Apply the appropriate class to the node based on its kind
+					cy.$(`[id="${node.methodName}"]`).addClass(node.kind);
+				});
+
+				callgraphData.edges.forEach(edge => {
+					cy.add({ data: { id: `${edge.source}->${edge.target}`, source: edge.source, target: edge.target } });
+				});
+
+
+				nodeCountDisplay.textContent = callgraphData.nodes.length;
+
+				cy.layout({
+					name: "concentric",
+
+				}).run();
+				document.getElementById("nodeCount").textContent = callgraphData.nodes.length;
+
+				// Update the edge count
+				document.getElementById("edgeCount").textContent = callgraphData.edges.length;
+				const kindCounts = {
+					"syn": 0,
+					"inh": 0,
+					"circular": 0,
+					"collection": 0
+				};
+
+				callgraphData.nodes.forEach(node => {
+					node.kind.forEach(kind => {
+						kindCounts[kind] = (kindCounts[kind] || 0) + 1;
+					});
+				});
+
+
+				// Populate the kind node counts
+				document.getElementById("kindSynNodeCount").textContent = kindCounts["syn"];
+				document.getElementById("kindInhNodeCount").textContent = kindCounts["inh"];
+				document.getElementById("kindCircularNodeCount").textContent = kindCounts["circular"];
+				document.getElementById("kindCollectionNodeCount").textContent = kindCounts["collection"];
+
+
+			})
+			.catch(error => {
+				console.error("Error fetching and visualizing callgraph:", error);
+			});
+
+		tooltip = document.createElement("div");
+		const nodeCountDisplay = document.getElementById("nodeCount");
+		tooltip.classList.add("tooltip");
+		// document.body.appendChild(tooltip);
+
+		let tooltipVisible = false;
+
+		tooltip.addEventListener("mouseover", () => {
+			console.log("mouseover event triggered");
+			tooltipVisible = true;
+		});
+
+		tooltip.addEventListener("mouseleave", () => {
+			console.log("mouseleave event triggered");
+			document.body.removeChild(tooltip);
+			tooltipVisible = false;
+		});
+		cy.on("mouseover", "node", event => {
+			tooltip = document.createElement("div");
+			tooltip.classList.add("tooltip");
+			document.body.appendChild(tooltip);
+			const node = event.target;
+			const sccId = node.data("sccId");
+			const kind = node.data("kind");
+			const evaluation = node.data("evaluation");
+
+
+			const position = node.renderedPosition();
+			tooltip.style.left = (position.x) + "px";
+			tooltip.style.top = (position.y) + "px";
+
+			let tooltipContent = `Node: ${node.id()}`;
+			tooltipContent += `<br>SCC ID: ${sccId}<br>Kind: ${kind}`;
+			tooltipContent += `<br>Evaluation: ${evaluation}`;
+
+
+			tooltip.innerHTML = tooltipContent;
+
+			if (node.data("histogram")) {
+				tooltip.innerHTML += '<canvas id="histogramChart" width="600" height="400"></canvas>';
+				const histogramData = node.data("histogram");
+
+				const canvas = document.getElementById("histogramChart");
+				const ctx = canvas.getContext("2d");
+
+				new Chart(ctx, {
+					type: "bar",
+					data: {
+						labels: Object.keys(histogramData),
+						datasets: [{
+							data: Object.values(histogramData),
+							backgroundColor: "rgba(75, 192, 192, 0.2)",
+							borderColor: "rgba(75, 192, 192, 1)",
+							borderWidth: 1,
+							label: 'COMPUTE_BEGIN',
+						}]
+					},
+					options: {
+						scales: {
+							y: {
+								beginAtZero: true
+							}
+						}
+					}
+				});
+			}
+
+
+
+			tooltip.style.opacity = 1;
+		});
+
+		cy.on("mouseout", "node", () => {
+			console.log("Node mouseout event triggered");
+			if (!tooltipVisible) {
+				document.body.removeChild(tooltip);
+			}
+
+		});
+
+
+		const layoutDropdown = document.getElementById("layoutDropdown");
+
+		layoutDropdown.addEventListener("change", () => {
+			const selectedLayout = layoutDropdown.value;
+			applyLayout(selectedLayout);
+		});
+
+		function applyLayout(layoutName) {
+			let layoutOptions;
+
+			if (layoutName === "cola") {
+				layoutOptions = {
+					name: "cola",
+					animate: false,
+					directed: true,
+					flow: { axis: "y", minSeparation: 30 },
+					edgeSymDiffLength: 10,
+				};
+			} else if (layoutName === "cose") {
+				layoutOptions = {
+					name: "cose",
+					animate: false,
+					idealEdgeLength: 100,
+					nodeOverlap: 20,
+					refresh: 20,
+					fit: true,
+					padding: 30,
+					randomize: false,
+					componentSpacing: 100,
+					nodeRepulsion: 400000,
+					edgeElasticity: 100,
+					nestingFactor: 5,
+					gravity: 80,
+					numIter: 1000,
+					initialTemp: 200,
+					coolingFactor: 0.95,
+					minTemp: 1.0,
+				};
+
+			} else {
+				layoutOptions = {
+					name: layoutName,
+					animate: false,
+					directed: true,
+					flow: { axis: "y", minSeparation: 100 },
+					edgeSymDiffLength: 5,
+				};
+			}
+
+			cy.layout(layoutOptions).run();
+		}
+
+
+		function highlightReachableNodes(nodeId) {
+			cy.elements().removeClass("circular");
+
+			const startNode = cy.$(`[id="${nodeId}"]`);
+			if (startNode.length > 0) {
+				const visited = new Set();
+				const queue = [startNode];
+
+				while (queue.length > 0) {
+					const currentNode = queue.shift();
+					if (!visited.has(currentNode.id())) {
+						visited.add(currentNode.id());
+						currentNode.addClass("circular");
+						currentNode.removeClass("hidden");
+						currentNode.connectedEdges().forEach(edge => {
+							const targetNode = edge.target();
+							if (!visited.has(targetNode.id())) {
+								queue.push(targetNode);
+								edge.removeClass("hidden"); // Show the edge
+								targetNode.removeClass("hidden"); // Show the target node
+							}
+						});
+					}
+				}
+			}
+		}
+
+		cy.on("cxttap", event => {
+			cy.elements().removeClass("highlighted");
+			cy.elements().removeClass("circular");
+			cy.elements().removeClass("hidden");
+
+			// Reset the reachability checkbox
+			const reachabilityCheckbox = document.getElementById("reachabilityCheckbox");
+			reachabilityCheckbox.checked = true; // Reset the checkbox to its default state
+
+			// Reset the layout dropdown list
+			const layoutDropdown = document.getElementById("layoutDropdown");
+			layoutDropdown.selectedIndex = 0; // Reset the dropdown to the default layout
+
+			const showNonCachableAttributes = document.getElementById("showNonCachableAttributes");
+			showNonCachableAttributes.checked = false;
+
+			const heatmapCheckbox = document.getElementById("showHeatmap");
+			heatmapCheckbox.checked = false;
+
+
+			cy.nodes().forEach(node => {
+				const kind = node.data("kind");
+				node.style("background-color", "");
+				node.addClass(kind); // Add back the appropriate class
+			});
+
+
+
+			const layoutOptions = {
+				name: "concentric",
+				animate: true,
+				animationDuration: 500,
+			};
+
+			cy.layout(layoutOptions).run();
+		});
+
+		cy.on("click", "node", event => {
+			const clickedNode = event.target;
+			const reachabilityCheckbox = document.getElementById("reachabilityCheckbox");
+
+			if (reachabilityCheckbox.checked) {
+				// Reachability mode
+				cy.elements().addClass("hidden"); // Hide all nodes and edges
+				highlightReachableNodes(clickedNode.id()); // Show reachable nodes
+			} else {
+				// SCC mode
+				const sccId = clickedNode.data("sccId");
+				if (sccId !== undefined) {
+					cy.elements().addClass("hidden"); // Hide all nodes and edges
+					cy.nodes().forEach(node => {
+						if (node.data("sccId") === sccId) {
+							node.removeClass("hidden"); // Show nodes with the same SCC ID
+							node.addClass("circular");
+						}
+					});
+					clickedNode.removeClass("hidden"); // Also show the clicked node
+
+					cy.edges().forEach(edge => {
+						const sourceNode = edge.source();
+						const targetNode = edge.target();
+						if (
+							sourceNode.data("sccId") === sccId && targetNode.data("sccId") === sccId
+						) {
+							edge.removeClass("hidden"); // Show edges with both source and target in the same SCC
+						}
+					});
+				}
+			}
+			const layoutOptions = {
+				name: "breadthfirst",
+				animate: true,
+				animationDuration: 500,
+				spacingFactor: 1.5,
+				roots: `#${clickedNode.id()}`,
+				boundingBox: {
+					x1: 0,
+					y1: 0,
+					x2: cy.width(),
+					y2: cy.height(),
+				},
+			};
+			cy.layout(layoutOptions).run();
+		});
+
+		const jsonFileInput = document.getElementById("jsonFileInput");
+		const indicator = document.getElementById("indicator");
+
+		jsonFileInput.addEventListener("change", event => {
+			const file = event.target.files[0];
+
+			if (file) {
+				const reader = new FileReader();
+				reader.onload = function (event) {
+					try {
+						const jsonContent = event.target.result;
+						const data = JSON.parse(jsonContent);
+
+						// Process the JSON data and update the graph nodes
+						updateGraphFromJSON(data);
+
+						indicator.innerHTML = '&#x2713;'; // Checkmark Unicode escape sequence
+						indicator.style.color = "green";
+					} catch (error) {
+						console.error("Error parsing JSON:", error);
+						indicator.innerHTML = '&#x2717;'; // Crossmark Unicode escape sequence
+						indicator.style.color = "red";
+					}
+				};
+				reader.readAsText(file);
+			}
+		});
+		function updateGraphFromJSON(data) {
+			// Loop through the JSON data and update the graph nodes
+			// Assuming cy is your graph instance
+			for (const methodName in data) {
+				if (data.hasOwnProperty(methodName)) {
+					const evaluationData = data[methodName];
+					const node = cy.$(`[id="${methodName}"]`);
+
+					if (node !== undefined) {
+						const histogramData = {};
+
+						for (const key in evaluationData) {
+							if (key === "total") {
+								// Update the total value
+								const totalValue = evaluationData[key];
+								node.data("evaluation", totalValue);
+							} else {
+								// Update other evaluation values
+								const intValue = parseInt(evaluationData[key]);
+								if (!isNaN(intValue)) {
+									histogramData[key] = intValue;
+								}
+							}
+						}
+
+						node.data("histogram", histogramData);
+					}
+				}
+			}
+		}
+
+
+
+
+		// Define the node types and their corresponding styles
+		const nodeTypes = [
+			{ type: "syn", label: "Synthetic", color: "rgb(91, 154, 139)" },
+			{ type: "inh", label: "Inherited", color: "rgb(247, 233, 135)" },
+			{ type: "collection", label: "Collection", borderColor: "red" },
+			{ type: "circular", label: "Circular", color: "rgb(178, 6, 0)", borderColor: "rgb(178, 6, 0)" },
+		];
+
+		// Add the legend elements to the "legend" container
+		const legendContainer = document.getElementById("legend");
+		nodeTypes.forEach(nodeType => {
+			const legendItem = document.createElement("div");
+			legendItem.classList.add("legend-item");
+
+			const legendNode = document.createElement("div");
+			legendNode.classList.add("legend-node");
+			legendNode.style.backgroundColor = nodeType.color || "transparent";
+			legendNode.style.borderColor = nodeType.borderColor || "transparent";
+
+			const legendLabel = document.createElement("span");
+			legendLabel.textContent = nodeType.label;
+
+			legendItem.appendChild(legendNode);
+			legendItem.appendChild(legendLabel);
+			legendContainer.appendChild(legendItem);
+		});
+
+
+	</script>
+	<script>
+		const menuButton = document.getElementById("menuButton");
+		const hamburgerMenu = document.getElementById("hamburgerMenu");
+
+		menuButton.addEventListener("click", () => {
+			hamburgerMenu.style.left = hamburgerMenu.style.left === "0px" ? "-251px" : "0px";
+		});
+	</script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	<script>
+		$(document).ready(function () {
+			$("#menuButton").click(function () {
+				$(this).toggleClass("active");
+				if ($(this).hasClass("active")) {
+					$(this).find("i").css("transform", "rotate(90deg)");
+				} else {
+					$(this).find("i").css("transform", "rotate(0deg)");
+				}
+			});
+		});
+	</script>
+</body>
+
+</html>

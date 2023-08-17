@@ -1,0 +1,19 @@
+// Exercise 2: printInfoAboutCycles
+
+aspect PrintInfoAboutCycles {
+  public void StateMachine.printInfoAboutCycles() {
+    for (Declaration d : getDeclarationList()) {
+      d.printInfoAboutCycles();
+    }
+  }
+  
+  public void Declaration.printInfoAboutCycles() {}
+  
+  public void State.printInfoAboutCycles() {
+    System.out.print("State "+getLabel()+" is ");
+    if (!reachable().contains(this)) {
+      System.out.print("not ");
+    }
+    System.out.println("on a cycle.");
+  }
+}

@@ -1,0 +1,14 @@
+import org.extendj.callgraph.AttributeTracer;
+aspect AttributeTracer {
+
+public
+  AttributeTracer Program.trace = new AttributeTracer();
+
+public
+  int ASTNode.succCount = 0;
+public
+  int ASTNode.predCount = 0;
+
+  syn int ASTNode.succCount() = succCount;
+  syn int ASTNode.predCount() = predCount;
+}

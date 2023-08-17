@@ -1,0 +1,27 @@
+// See section 2.3 in the paper
+
+aspect PrintReachable {
+  public void StateMachine.printReachable() {
+    for (Declaration d : getDeclarations()) d.printReachable();
+  }
+    
+  public void Declaration.printReachable() { }
+    
+  public void State.printReachable() {
+    System.out.println(getLabel() + " can reach {" +
+        listOfReachableStateLabels() + "}");
+  }
+    
+  public String State.listOfReachableStateLabels() {
+    boolean insideList = false;
+    StringBuffer result = new StringBuffer();
+    for (State s : reachable()) {
+      if (insideList)
+        result.append(", ");
+      else
+        insideList = true;
+      result.append(s.getLabel());
+    }
+    return result.toString();
+  }
+}

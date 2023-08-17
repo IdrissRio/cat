@@ -1,0 +1,291 @@
+import org.extendj.callgraph.CallGraph;
+import org.extendj.callgraph.CallGraphNode;
+import java.util.LinkedHashSet;
+import org.extendj.Cat;
+import java.util.function.Predicate;
+
+aspect CHA {
+  coll Set<TypeDecl> TypeDecl.subtypes()[new HashSet<>()] with addAll;
+  ClassDecl contributes subHelper() to TypeDecl.subtypes() for supertypeTarget();
+ ClassDecl contributes subHelper() to TypeDecl.subtypes() for each superInterfacesTarget();
+ InterfaceDecl contributes subHelper() to TypeDecl.subtypes() for supertype();
+ InterfaceDecl contributes subHelper() to TypeDecl.subtypes() for each superInterfacesTarget();
+
+ coll Set<TypeDecl> TypeDecl.supertypes()[new HashSet<>()] with add;
+ ClassDecl contributes this to TypeDecl.supertypes() for each subtypes();
+ ParClassDecl contributes this to TypeDecl.supertypes() for each subtypes();
+ InterfaceDecl contributes this to TypeDecl.supertypes() for each subtypes();
+
+ syn boolean TypeDecl.isParDecl() = false;
+ eq ParClassDecl.isParDecl() = true;
+ eq ParInterfaceDecl.isParDecl() = true;
+
+ syn boolean TypeDecl.isRawDecl() = false;
+ eq RawClassDecl.isRawDecl() = true;
+ eq RawInterfaceDecl.isRawDecl() = true;
+
+ syn TypeDecl ClassDecl.supertypeTarget() {
+   if (supertype().isParDecl()) {
+     return ((ParClassDecl)supertype()).genericDecl();
+   } else if (supertype().isRawDecl()) {
+     return ((RawClassDecl)supertype()).genericDecl();
+   } else {
+     return superclass();
+   }
+ }
+
+ syn java.util.List<TypeDecl> ClassDecl.superInterfacesTarget() {
+   java.util.List<TypeDecl> interfaces = new ArrayList<TypeDecl>();
+   Iterator iter = superInterfaces().iterator();
+   while (iter.hasNext()) {
+     TypeDecl t = (TypeDecl)iter.next();
+     if (t.isParDecl()) {
+       interfaces.add(((ParInterfaceDecl)t).genericDecl());
+     } else if (t.isRawDecl()) {
+       interfaces.add(((RawInterfaceDecl)t).genericDecl());
+     } else {
+       interfaces.add(t);
+     }
+   }
+   return interfaces;
+ }
+
+ syn java.util.List<TypeDecl> InterfaceDecl.superInterfacesTarget() {
+   java.util.List<TypeDecl> interfaces = new ArrayList<TypeDecl>();
+   Iterator iter = superInterfaces().iterator();
+   while (iter.hasNext()) {
+     TypeDecl t = (TypeDecl)iter.next();
+     if (t.isParDecl()) {
+       interfaces.add(((ParInterfaceDecl)t).genericDecl());
+     } else if (t.isRawDecl()) {
+       interfaces.add(((RawInterfaceDecl)t).genericDecl());
+     } else {
+       interfaces.add(t);
+     }
+   }
+   return interfaces;
+ }
+
+ syn Set<TypeDecl> TypeDecl.subHelper() {
+   Set<TypeDecl> subtypes = new HashSet<>(subtypes());
+   subtypes.add(this);
+   return subtypes;
+ }
+
+ syn Set<TypeDecl> InterfaceDecl.subHelper() {
+   Set<TypeDecl> subtypes = new HashSet<>(subtypes());
+   subtypes.add(this);
+   return subtypes;
+ }
+
+ coll Set<TypeDecl> Program.allTypes()[new LinkedHashSet<>()] with add root
+     Program;
+ ClassDecl contributes this to Program.allTypes();
+ InterfaceDecl contributes this to Program.allTypes();
+
+ syn String Program.testCHA() {
+   Set<TypeDecl> types = allTypes();
+   StringBuilder sb = new StringBuilder();
+   for (TypeDecl t : types) {
+     Set<String> subtypes = new TreeSet<>();
+     Set<String> supertypes = new TreeSet<>();
+     for (TypeDecl st : t.subtypes()) {
+       subtypes.add(st.fullName());
+     }
+     for (TypeDecl st : t.supertypes()) {
+       supertypes.add(st.fullName());
+     }
+     sb.append(t.fullName() + " :> " + subtypes + "\n");
+     sb.append(t.fullName() + " <: " + supertypes + "\n");
+   }
+   return sb.toString();
+ }
+}
+
+aspect CallGraph {
+
+ coll Set<MethodAccess> MethodDecl
+     .calledMethods()[new LinkedHashSet<>()] with add;
+  MethodAccess contributes this to MethodDecl.calledMethods() for enclosingMethodDecl();
+
+  coll Set<CallGraph> Program.callGraphs()[new HashSet<>()] with add root
+      Program;
+  MethodDecl contributes callGraph() when considerMethod()
+      to Program.callGraphs();
+
+  syn CallGraph Program.callGraph() {
+    CallGraph g = new CallGraph();
+    g.union(callGraphs());
+    return g;
+  }
+
+  inh MethodDecl MethodAccess.enclosingMethodDecl();
+  eq MethodDecl.getChild().enclosingMethodDecl() = this;
+  eq Program.getChild().enclosingMethodDecl() = null;
+
+  syn CallGraph MethodDecl.callGraph() {
+    CallGraph g = new CallGraph(this.getSignature());
+    Set<MethodDecl> visited = new HashSet<>();
+    callGraphBuilder(g, visited, this, true);
+    return g;
+  }
+
+  syn boolean MethodDecl.considerMethod() =
+      !Cat.considerOnlyAttributes || isAnAttribute();
+
+public
+  void MethodDecl.callGraphBuilder(CallGraph g, Set<MethodDecl> visited,
+                                   MethodDecl previous, boolean first) {
+    if (considerMethod() && !first) {
+      g.addMethodCall(previous.hostName() + previous.getSignature(),
+                      previous.getKindOfAttribute(),
+                      this.hostName() + this.getSignature(),
+                      this.getKindOfAttribute());
+    }
+    if (visited.contains(this)) {
+      return;
+    } else {
+      visited.add(this);
+    }
+    for (MethodAccess m : calledMethods()) {
+
+      for (MethodDecl decl : m.allDecls()) {
+        if (considerMethod()) {
+          decl.callGraphBuilder(g, visited, this, false);
+        } else {
+          decl.callGraphBuilder(g, visited, previous, false);
+        }
+      }
+    }
+  }
+
+  syn TypeDecl TypeDecl.getGenericHostDecl() = this;
+  eq ParClassDecl.getGenericHostDecl() = genericDecl();
+  eq ParInterfaceDecl.getGenericHostDecl() = genericDecl();
+  eq RawClassDecl.getGenericHostDecl() = genericDecl();
+  eq RawInterfaceDecl.getGenericHostDecl() = genericDecl();
+
+  syn String MethodDecl.hostName();
+  eq MethodDecl.hostName() = hostType().name() + "::";
+
+  syn Set<MethodDecl> MethodAccess.allDecls() {
+    Set<MethodDecl> decls = new HashSet<>();
+    decls.add(decl());
+
+    MethodDecl targetDecl = decl();
+    TypeDecl host = targetDecl.hostType().getGenericHostDecl();
+
+    for (TypeDecl t : host.subtypes()) {
+      if (t instanceof ClassDecl || t instanceof InterfaceDecl) {
+        Iterator<MethodDecl> iter = t.methods().iterator();
+        while (iter.hasNext()) {
+          MethodDecl md = iter.next();
+          if (md.sameSignature(targetDecl)) {
+            decls.add(md);
+          }
+        }
+      }
+    }
+
+    return decls;
+  }
+
+  syn String MethodDecl.dotCallGraph() = "@@DOT:" + callGraph().toDot();
+
+  syn String MethodDecl.getSignature();
+  eq MethodDecl.getSignature() = name();
+
+  inh TypeDecl MethodDecl.declaredIn();
+  eq ClassDecl.getChild().declaredIn() = this;
+  eq InterfaceDecl.getChild().declaredIn() = this;
+  eq Program.getChild().declaredIn() = null;
+}
+
+aspect AttributeKind {
+
+  syn String Annotation.getKind() {
+    try {
+      ElementValuePair pair = getElementValuePair(0);
+      ElementConstantValue ecv = (ElementConstantValue)pair.getElementValue();
+      Expr e = ecv.getExpr();
+      Dot d = (Dot)e;
+      VarAccess va = (VarAccess)d.lastAccess();
+      return va.getID();
+    } catch (Throwable ignored) {
+      // it's not an attribute
+    }
+    return "";
+  }
+
+  syn boolean Modifier.isAnAttribute() = false;
+  eq Annotation.isAnAttribute() = isCollectionAttribute() || isSynAttribute() ||
+                                  isInhAttribute() || isCircularAttribute();
+
+  syn boolean Modifier.isCollectionAttribute() = false;
+  eq Annotation.isCollectionAttribute() = getKind().equals("COLL");
+
+  syn boolean Modifier.isSynAttribute() = false;
+  eq Annotation.isSynAttribute() = getKind().equals("SYN");
+
+  syn boolean Modifier.isInhAttribute() = false;
+  eq Annotation.isInhAttribute() = getKind().equals("INH");
+
+  syn boolean Modifier.isCircularAttribute() = false;
+  eq Annotation.isCircularAttribute() = getKind().equals("isCircular");
+
+private
+  boolean MethodDecl.hasAttributeInModifiers(
+      Iterable<Modifier> modifiers, Predicate<Modifier> attributeCheck) {
+    for (Modifier m : modifiers) {
+      if (attributeCheck.test(m)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  syn boolean MethodDecl.isAnAttribute() {
+    return hasAttributeInModifiers(getModifiers().getModifiers(),
+                                   Modifier::isAnAttribute);
+  }
+
+  syn boolean MethodDecl.isSynAttribute() {
+    return hasAttributeInModifiers(getModifiers().getModifiers(),
+                                   Modifier::isSynAttribute);
+  }
+
+  syn boolean MethodDecl.isInhAttribute() {
+    return hasAttributeInModifiers(getModifiers().getModifiers(),
+                                   Modifier::isInhAttribute);
+  }
+
+  syn boolean MethodDecl.isCircularAttribute() {
+    return hasAttributeInModifiers(getModifiers().getModifiers(),
+                                   Modifier::isCircularAttribute);
+  }
+
+  syn boolean MethodDecl.isCollectionAttribute() {
+    return hasAttributeInModifiers(getModifiers().getModifiers(),
+                                   Modifier::isCollectionAttribute);
+  }
+
+  syn java.util.List<String> MethodDecl.getKindOfAttribute() {
+    java.util.List<String> kinds = new ArrayList<String>();
+    if (isSynAttribute()) {
+      kinds.add("syn");
+    }
+    if (isInhAttribute()) {
+      kinds.add("inh");
+    }
+    if (isCircularAttribute()) {
+      kinds.add("circular");
+    }
+    if (isCollectionAttribute()) {
+      kinds.add("collection");
+    }
+    if (kinds.isEmpty()) {
+      kinds.add("method");
+    }
+    return kinds;
+  }
+}

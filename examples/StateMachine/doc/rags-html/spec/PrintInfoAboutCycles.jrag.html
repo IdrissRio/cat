@@ -1,0 +1,25 @@
+<HTML>
+<head><script src="../../resources/jquery.js"></script><script>$(document).ready(function(event) {$(document.location.hash).css('background', 'yellow');$(document.location.hash + ' span').css('color', 'red');});</script></head><BODY BGCOLOR="white">
+<PRE>
+<span id="line-1"><span style="color: green">001</span>    // Exercise 2: printInfoAboutCycles<a name="line-1"></a></span>
+<span id="line-2"><span style="color: green">002</span>    <a name="line-2"></a></span>
+<span id="line-3"><span style="color: green">003</span>    aspect PrintInfoAboutCycles {<a name="line-3"></a></span>
+<span id="line-4"><span style="color: green">004</span>      public void StateMachine.printInfoAboutCycles() {<a name="line-4"></a></span>
+<span id="line-5"><span style="color: green">005</span>        for (Declaration d : getDeclarationList()) {<a name="line-5"></a></span>
+<span id="line-6"><span style="color: green">006</span>          d.printInfoAboutCycles();<a name="line-6"></a></span>
+<span id="line-7"><span style="color: green">007</span>        }<a name="line-7"></a></span>
+<span id="line-8"><span style="color: green">008</span>      }<a name="line-8"></a></span>
+<span id="line-9"><span style="color: green">009</span>      <a name="line-9"></a></span>
+<span id="line-10"><span style="color: green">010</span>      public void Declaration.printInfoAboutCycles() {}<a name="line-10"></a></span>
+<span id="line-11"><span style="color: green">011</span>      <a name="line-11"></a></span>
+<span id="line-12"><span style="color: green">012</span>      public void State.printInfoAboutCycles() {<a name="line-12"></a></span>
+<span id="line-13"><span style="color: green">013</span>        System.out.print("State "+getLabel()+" is ");<a name="line-13"></a></span>
+<span id="line-14"><span style="color: green">014</span>        if (!reachable().contains(this)) {<a name="line-14"></a></span>
+<span id="line-15"><span style="color: green">015</span>          System.out.print("not ");<a name="line-15"></a></span>
+<span id="line-16"><span style="color: green">016</span>        }<a name="line-16"></a></span>
+<span id="line-17"><span style="color: green">017</span>        System.out.println("on a cycle.");<a name="line-17"></a></span>
+<span id="line-18"><span style="color: green">018</span>      }<a name="line-18"></a></span>
+<span id="line-19"><span style="color: green">019</span>    }<a name="line-19"></a></span>
+</PRE>
+</BODY>
+</HTML>

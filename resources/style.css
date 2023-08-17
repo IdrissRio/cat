@@ -1,0 +1,20 @@
+node {
+	text-alignment: under;
+	text-color: white;
+	text-style: bold;
+	text-background-mode: rounded-box;
+	text-background-color: #222C;
+	text-padding: 1px;
+	text-offset: 0px, 2px;
+	text-size: 10px;
+}
+
+
+graph {
+	fill-color: rgb(54, 54, 54);
+}
+
+edge {
+	shape: freeplane;
+	fill-color: white;
+}

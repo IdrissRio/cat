@@ -1,0 +1,121 @@
+// Solutions to various exercises in the paper
+
+import java.util.*;
+aspect Exercises {
+  // Exercise 8: alreadyDeclared
+    syn boolean State.alreadyDeclared() = lookup(this.getLabel()) != this;
+  
+  // Exercise 9: multiplyDeclared
+  syn boolean State.multiplyDeclared() =
+      alreadyDeclared() || hasLaterNamesake();
+  
+  syn boolean State.hasLaterNamesake() =
+      lookupForward(getLabel()) != null;
+  
+  inh State Declaration.lookupForward(String label);
+    
+  eq StateMachine.getDeclaration(int i).lookupForward(String label) {
+    for (int k = i+1; k<getNumDeclaration(); k++) {
+      Declaration d = getDeclaration(k);
+      State match = d.localLookup(label);
+      if (match != null) return match;
+    }
+    return null;
+  }
+
+  // Exercise 10: altTransitions
+  syn Set<Transition> State.altTransitions() = transitionsOf(this);
+  inh Set<Transition> State.transitionsOf(State s);
+  
+  eq StateMachine.getDeclaration(int i).transitionsOf(State s) {
+    HashSet<Transition> result = new HashSet<Transition>();
+    for (Declaration d : getDeclarationList()) {
+      Transition t = d.transitionOf(s);
+      if (t != null) result.add(t);
+    }
+    return result;
+  }
+  
+  syn Transition Declaration.transitionOf(State s) = null;
+  eq Transition.transitionOf(State s) {
+    if (source() == s)
+      return this;
+    else
+      return null;
+  }
+
+  // Exercise 11: altSuccessors
+  coll Set<State> State.altSuccessors() [new HashSet<State>()] with add;
+  
+  Transition contributes target()
+    when target() != null && source() != null
+    to State.altSuccessors()
+    for source();
+  
+
+  // Exercise 12: predecessors
+  coll Set<State> State.predecessors() [new HashSet<State>()] with add;
+  
+  State contributes this
+    to State.predecessors()
+    for each successors();
+
+  // Exercise 13: numberOfTransitions
+  syn int StateMachine.numberOfTransitions() =
+      numberOfTransitionsColl().value();
+  coll Counter StateMachine.numberOfTransitionsColl() [new Counter()] with add;
+  
+  Transition contributes 1
+    to StateMachine.numberOfTransitionsColl()
+    for theMachine();
+    
+  inh StateMachine Declaration.theMachine();
+  eq  StateMachine.getDeclaration(int i).theMachine() = this;
+ 
+  public class Counter {
+    private int value;
+    public Counter() { value = 0; }
+    public void add(int value) { this.value += value; }
+    public int value() { return value; }
+  }
+
+  // Exercise 14: errors
+  coll Set<String> StateMachine.errors()
+       [new HashSet<String>()] with add;
+
+  State contributes getLabel()+" is already declared"
+  when alreadyDeclared()
+  to StateMachine.errors()
+  for theMachine();
+  
+  Transition contributes "Missing declaration of "+getSourceLabel()
+  when source() == null
+  to StateMachine.errors()
+  for theMachine();
+  
+  Transition contributes "Missing declaration of "+getTargetLabel()
+  when target() == null
+  to StateMachine.errors()
+  for theMachine();
+
+  // Exercise 18: altReachable
+  coll Set<State> State.altReachable() circular [new HashSet<State>()] with addAll;
+  
+  State contributes union(asSet(this),altReachable())
+    to State.altReachable()
+    for each predecessors();
+    
+  // helper functions asSet and union
+  Set<State> ASTNode.asSet(State o) {
+    HashSet<State> result = new HashSet<State>();
+    result.add(o);
+    return result;
+  }
+  
+  Set<State> ASTNode.union(Set<State> s1, Set<State> s2) {
+    HashSet<State> result = new HashSet<State>();
+    for (State s: s1) result.add(s);
+    for (State s: s2) result.add(s);
+    return result;
+  }
+}

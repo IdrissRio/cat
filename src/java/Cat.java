@@ -30,8 +30,9 @@
 
 package org.extendj;
 
-import com.ibm.wala.classLoader.Module;
-import com.ibm.wala.classLoader.SourceFileModule;
+import static spark.Spark.*;
+
+import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -56,11 +57,11 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import org.extendj.ast.CFGNode;
-import org.extendj.ast.CFGRoot;
 import org.extendj.ast.CompilationUnit;
 import org.extendj.ast.Frontend;
 import org.extendj.ast.Program;
+import org.extendj.callgraph.CallGraph;
+import org.extendj.callgraph.GSCallGraph;
 
 /**
  * Perform static semantic checks on a Java program.
@@ -70,6 +71,8 @@ public class Cat extends Frontend {
   private static String filename;
   public static Object DrAST_root_node;
   public static Cat Cat;
+  private static int number = 0;
+  public static boolean considerOnlyAttributes = true;
 
   private static String[] setEnv(String[] args) throws FileNotFoundException {
     if (args.length < 1) {
@@ -90,6 +93,7 @@ public class Cat extends Frontend {
       case "-classpath":
         FEOptions.add("-classpath");
         FEOptions.add(args[++i]);
+        FEOptions.add("-nowarn");
         break;
       default:
         System.err.println("Unrecognized option: " + opt);
@@ -104,18 +108,77 @@ public class Cat extends Frontend {
    * Entry point for the Java checker.
    * @param args command-line arguments
    */
+  //   public static void main(String args[])
+  //       throws FileNotFoundException, InterruptedException, IOException {
+  //     // String[] jCheckerArgs = setEnv(args);
+
+  //     // Cat cat = new Cat();
+  //     // cat.program = new Program();
+  //     // DrAST_root_node = cat.getEntryPoint();
+  //     // int exitCode = cat.run(jCheckerArgs);
+
+  //     // if (exitCode != 0) {
+  //     //   System.exit(exitCode);
+  //     // }
+  //     staticFiles.location("/public");
+  //      port(8080); // Set the port to listen on
+
+  //     get("/getNumber", (req, res) -> Integer.toString(number));
+
+  //     post("/incrementNumber", (req, res) -> {
+  //         number++;
+  //         return "Number incremented";
+  //     });
+
+  //    post("/incrementAndAddNode", (req, res) -> {
+  //     number++;
+
+  //     // Send a response to indicate that the number has been incremented
+  //     res.status(200);
+  //     return "Number incremented";
+  // });
+
+  //     // GSCallGraph callgraph =
+  //     //         new GSCallGraph("CallGraph",
+  //     cat.getEntryPoint().callGraph());
+  //   }
+
   public static void main(String args[])
       throws FileNotFoundException, InterruptedException, IOException {
-    String[] jCheckerArgs = setEnv(args);
+    // System.err.println(java.util.Arrays.toString(args));
 
-    Cat Cat = getInstance();
-    Cat.program = new Program();
-    DrAST_root_node = Cat.getEntryPoint();
-    int exitCode = Cat.run(jCheckerArgs);
+    String[] jCheckerArgs = setEnv(args);
+    Cat cat = new Cat();
+    cat.program = new Program();
+    DrAST_root_node = cat.getEntryPoint();
+    int exitCode = cat.run(jCheckerArgs);
 
     if (exitCode != 0) {
       System.exit(exitCode);
     }
+    CallGraph callgraph = cat.getEntryPoint().callGraph();
+
+    String callgraphJson =
+        new GSCallGraph("CallGraph", cat.getEntryPoint().callGraph()).toJson();
+    System.out.println("JSON: " + callgraphJson);
+
+    staticFiles.location("/public");
+    port(8080); // Set the port to listen on
+
+    // get("/getNumber", (req, res) -> Integer.toString(number));
+    get("/getCallgraphData", (req, res) -> { return callgraphJson; });
+
+    // post("/incrementNumber", (req, res) -> {
+    //     number++;
+    //     return "Number incremented";
+    // });
+
+    //    post("/incrementAndAddNode", (req, res) -> {
+    //     number++;
+
+    //     res.status(200);
+    //     return "Number incremented";
+    // });
   }
 
   /**

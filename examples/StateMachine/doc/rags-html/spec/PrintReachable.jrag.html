@@ -1,0 +1,33 @@
+<HTML>
+<head><script src="../../resources/jquery.js"></script><script>$(document).ready(function(event) {$(document.location.hash).css('background', 'yellow');$(document.location.hash + ' span').css('color', 'red');});</script></head><BODY BGCOLOR="white">
+<PRE>
+<span id="line-1"><span style="color: green">001</span>    // See section 2.3 in the paper<a name="line-1"></a></span>
+<span id="line-2"><span style="color: green">002</span>    <a name="line-2"></a></span>
+<span id="line-3"><span style="color: green">003</span>    aspect PrintReachable {<a name="line-3"></a></span>
+<span id="line-4"><span style="color: green">004</span>      public void StateMachine.printReachable() {<a name="line-4"></a></span>
+<span id="line-5"><span style="color: green">005</span>        for (Declaration d : getDeclarations()) d.printReachable();<a name="line-5"></a></span>
+<span id="line-6"><span style="color: green">006</span>      }<a name="line-6"></a></span>
+<span id="line-7"><span style="color: green">007</span>        <a name="line-7"></a></span>
+<span id="line-8"><span style="color: green">008</span>      public void Declaration.printReachable() { }<a name="line-8"></a></span>
+<span id="line-9"><span style="color: green">009</span>        <a name="line-9"></a></span>
+<span id="line-10"><span style="color: green">010</span>      public void State.printReachable() {<a name="line-10"></a></span>
+<span id="line-11"><span style="color: green">011</span>        System.out.println(getLabel() + " can reach {" +<a name="line-11"></a></span>
+<span id="line-12"><span style="color: green">012</span>            listOfReachableStateLabels() + "}");<a name="line-12"></a></span>
+<span id="line-13"><span style="color: green">013</span>      }<a name="line-13"></a></span>
+<span id="line-14"><span style="color: green">014</span>        <a name="line-14"></a></span>
+<span id="line-15"><span style="color: green">015</span>      public String State.listOfReachableStateLabels() {<a name="line-15"></a></span>
+<span id="line-16"><span style="color: green">016</span>        boolean insideList = false;<a name="line-16"></a></span>
+<span id="line-17"><span style="color: green">017</span>        StringBuffer result = new StringBuffer();<a name="line-17"></a></span>
+<span id="line-18"><span style="color: green">018</span>        for (State s : reachable()) {<a name="line-18"></a></span>
+<span id="line-19"><span style="color: green">019</span>          if (insideList)<a name="line-19"></a></span>
+<span id="line-20"><span style="color: green">020</span>            result.append(", ");<a name="line-20"></a></span>
+<span id="line-21"><span style="color: green">021</span>          else<a name="line-21"></a></span>
+<span id="line-22"><span style="color: green">022</span>            insideList = true;<a name="line-22"></a></span>
+<span id="line-23"><span style="color: green">023</span>          result.append(s.getLabel());<a name="line-23"></a></span>
+<span id="line-24"><span style="color: green">024</span>        }<a name="line-24"></a></span>
+<span id="line-25"><span style="color: green">025</span>        return result.toString();<a name="line-25"></a></span>
+<span id="line-26"><span style="color: green">026</span>      }<a name="line-26"></a></span>
+<span id="line-27"><span style="color: green">027</span>    }<a name="line-27"></a></span>
+</PRE>
+</BODY>
+</HTML>

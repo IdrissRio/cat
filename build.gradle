@@ -36,7 +36,8 @@ jastadd {
   jastaddOptions = [ "--rewrite=cnta",
                      "--safeLazy",
                      "--visitCheck=false",
-                     "--optimize-imports"]
+                     "--optimize-imports",
+                     "--tracing=compute"]
   astPackage = 'org.extendj.ast'
   parser.name = 'JavaParser'
   scanner.name = 'OriginalScanner'
@@ -51,6 +52,7 @@ sourceSets.main {
     srcDir 'src/java/magpiebridge/resources'
     srcDir 'extendj/src/res'
     srcDir jastadd.buildInfoDir
+    srcDir 'resources'
   }
   repositories {
     mavenLocal()
@@ -61,12 +63,17 @@ sourceSets.main {
   }
 }
 
+
+
 dependencies{
     testImplementation 'junit:junit:4.12'
     implementation 'junit:junit:4.12'
-    implementation files('tools/magpiebridge-0.1.6-SNAPSHOT-jar-with-dependencies.jar')
-    implementation 'com.sun.net.httpserver:http:20070405'
-    implementation group: 'org.freemarker', name: 'freemarker', version: '2.3.29'
+    implementation 'org.graphstream:gs-core:2.0'
+    implementation 'org.graphstream:gs-ui-swing:2.0'
+    implementation 'org.graphstream:gs-algo:2.0'
+    implementation 'org.graphstream:gs-ui-swing:2.0'
+    implementation 'com.sparkjava:spark-core:2.9.3'
+    implementation 'com.google.code.gson:gson:2.8.9'
 }
 
 sourceSets.test{
@@ -76,31 +83,11 @@ sourceSets.test{
 }
 
 test {
-   useJUnit()
-
-
+  useJUnit()
   dependsOn 'cleanTest'
 }
 
 
-
-// task cat(type: Jar) { 
-//     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-//     from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
-//         exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
-//     }
-//     from sourceSets.main.output
-//     manifest {
-//         attributes 'Main-Class': 'org.extendj.cat'
-//     }
-//     baseName = 'cat'
-//     destinationDir = projectDir
-// }
-
-// artifacts {
-//   archives cat
-// }
 
 jar {
   duplicatesStrategy = DuplicatesStrategy.INCLUDE

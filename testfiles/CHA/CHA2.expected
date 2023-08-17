@@ -1,0 +1,6 @@
+Vehicle :> [Bike, Car]
+Vehicle <: []
+Car :> []
+Car <: [Vehicle]
+Bike :> []
+Bike <: [Vehicle]

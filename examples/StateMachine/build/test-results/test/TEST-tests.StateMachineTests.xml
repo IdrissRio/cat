@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="tests.StateMachineTests" tests="3" skipped="0" failures="0" errors="0" timestamp="2023-08-15T14:14:57" hostname="Idrisss-MBP.lan" time="0.006">
+  <properties/>
+  <testcase name="testSuccessors" classname="tests.StateMachineTests" time="0.005"/>
+  <testcase name="testReachable" classname="tests.StateMachineTests" time="0.001"/>
+  <testcase name="testNameAnalysis" classname="tests.StateMachineTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
