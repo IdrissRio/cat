@@ -30,6 +30,7 @@
 
 package org.extendj.callgraph;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,13 +118,16 @@ public class CallGraphNode {
    */
   @Override
   public String toString() {
+    List<CallGraphNode> sortedCallees = new ArrayList<>(callees);
+    sortedCallees.sort(Comparator.comparing(CallGraphNode::getMethodName));
+
     StringBuilder sb = new StringBuilder();
     sb.append(methodName);
-    if (!callees.isEmpty()) {
+    if (!sortedCallees.isEmpty()) {
       sb.append(" -> ");
-      for (int i = 0; i < callees.size(); i++) {
-        sb.append(callees.get(i).getMethodName());
-        if (i < callees.size() - 1) {
+      for (int i = 0; i < sortedCallees.size(); i++) {
+        sb.append(sortedCallees.get(i).getMethodName());
+        if (i < sortedCallees.size() - 1) {
           sb.append(", ");
         }
       }

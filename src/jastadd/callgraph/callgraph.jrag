@@ -3,13 +3,15 @@ import org.extendj.callgraph.CallGraphNode;
 import java.util.LinkedHashSet;
 import org.extendj.Cat;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 aspect CHA {
+
   coll Set<TypeDecl> TypeDecl.subtypes()[new HashSet<>()] with addAll;
   ClassDecl contributes subHelper() to TypeDecl.subtypes() for supertypeTarget();
- ClassDecl contributes subHelper() to TypeDecl.subtypes() for each superInterfacesTarget();
- InterfaceDecl contributes subHelper() to TypeDecl.subtypes() for supertype();
- InterfaceDecl contributes subHelper() to TypeDecl.subtypes() for each superInterfacesTarget();
+  ClassDecl contributes subHelper() to TypeDecl.subtypes() for each superInterfacesTarget();
+  InterfaceDecl contributes subHelper() to TypeDecl.subtypes() for supertype();
+  InterfaceDecl contributes subHelper() to TypeDecl.subtypes() for each superInterfacesTarget();
 
  coll Set<TypeDecl> TypeDecl.supertypes()[new HashSet<>()] with add;
  ClassDecl contributes this to TypeDecl.supertypes() for each subtypes();
@@ -23,6 +25,12 @@ aspect CHA {
  syn boolean TypeDecl.isRawDecl() = false;
  eq RawClassDecl.isRawDecl() = true;
  eq RawInterfaceDecl.isRawDecl() = true;
+
+ syn TypeDecl TypeDecl.getGenericHostDecl() = this;
+ eq ParClassDecl.getGenericHostDecl() = genericDecl();
+ eq ParInterfaceDecl.getGenericHostDecl() = genericDecl();
+ eq RawClassDecl.getGenericHostDecl() = genericDecl();
+ eq RawInterfaceDecl.getGenericHostDecl() = genericDecl();
 
  syn TypeDecl ClassDecl.supertypeTarget() {
    if (supertype().isParDecl()) {
@@ -124,7 +132,7 @@ aspect CallGraph {
   eq Program.getChild().enclosingMethodDecl() = null;
 
   syn CallGraph MethodDecl.callGraph() {
-    CallGraph g = new CallGraph(this.getSignature());
+    CallGraph g = new CallGraph(methodSignature());
     Set<MethodDecl> visited = new HashSet<>();
     callGraphBuilder(g, visited, this, true);
     return g;
@@ -136,37 +144,24 @@ aspect CallGraph {
 public
   void MethodDecl.callGraphBuilder(CallGraph g, Set<MethodDecl> visited,
                                    MethodDecl previous, boolean first) {
-    if (considerMethod() && !first) {
-      g.addMethodCall(previous.hostName() + previous.getSignature(),
-                      previous.getKindOfAttribute(),
-                      this.hostName() + this.getSignature(),
-                      this.getKindOfAttribute());
+    if (!first && considerMethod()) {
+     g.addMethodCall(previous.methodSignature(), previous.getKindOfAttribute(),
+                     methodSignature(), getKindOfAttribute());
     }
-    if (visited.contains(this)) {
-      return;
-    } else {
-      visited.add(this);
-    }
-    for (MethodAccess m : calledMethods()) {
 
-      for (MethodDecl decl : m.allDecls()) {
-        if (considerMethod()) {
-          decl.callGraphBuilder(g, visited, this, false);
-        } else {
-          decl.callGraphBuilder(g, visited, previous, false);
-        }
-      }
+    if (!visited.add(this)) {
+     return;
+    }
+
+    for (MethodAccess m : calledMethods()) {
+     for (MethodDecl decl : m.allDecls()) {
+       MethodDecl caller = considerMethod() ? this : previous;
+       decl.callGraphBuilder(g, visited, caller, false);
+     }
     }
   }
 
-  syn TypeDecl TypeDecl.getGenericHostDecl() = this;
-  eq ParClassDecl.getGenericHostDecl() = genericDecl();
-  eq ParInterfaceDecl.getGenericHostDecl() = genericDecl();
-  eq RawClassDecl.getGenericHostDecl() = genericDecl();
-  eq RawInterfaceDecl.getGenericHostDecl() = genericDecl();
-
-  syn String MethodDecl.hostName();
-  eq MethodDecl.hostName() = hostType().name() + "::";
+  syn String MethodDecl.methodSignature() = hostType().name() + "::" + name();
 
   syn Set<MethodDecl> MethodAccess.allDecls() {
     Set<MethodDecl> decls = new HashSet<>();
@@ -176,24 +171,16 @@ public
     TypeDecl host = targetDecl.hostType().getGenericHostDecl();
 
     for (TypeDecl t : host.subtypes()) {
-      if (t instanceof ClassDecl || t instanceof InterfaceDecl) {
-        Iterator<MethodDecl> iter = t.methods().iterator();
-        while (iter.hasNext()) {
-          MethodDecl md = iter.next();
-          if (md.sameSignature(targetDecl)) {
-            decls.add(md);
-          }
-        }
-      }
+     if (t instanceof ClassDecl || t instanceof InterfaceDecl) {
+       decls.addAll(t.methods()
+                        .stream()
+                        .filter(md->md.sameSignature(targetDecl))
+                        .collect(Collectors.toList()));
+     }
     }
 
     return decls;
   }
-
-  syn String MethodDecl.dotCallGraph() = "@@DOT:" + callGraph().toDot();
-
-  syn String MethodDecl.getSignature();
-  eq MethodDecl.getSignature() = name();
 
   inh TypeDecl MethodDecl.declaredIn();
   eq ClassDecl.getChild().declaredIn() = this;

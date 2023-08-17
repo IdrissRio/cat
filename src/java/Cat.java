@@ -108,45 +108,8 @@ public class Cat extends Frontend {
    * Entry point for the Java checker.
    * @param args command-line arguments
    */
-  //   public static void main(String args[])
-  //       throws FileNotFoundException, InterruptedException, IOException {
-  //     // String[] jCheckerArgs = setEnv(args);
-
-  //     // Cat cat = new Cat();
-  //     // cat.program = new Program();
-  //     // DrAST_root_node = cat.getEntryPoint();
-  //     // int exitCode = cat.run(jCheckerArgs);
-
-  //     // if (exitCode != 0) {
-  //     //   System.exit(exitCode);
-  //     // }
-  //     staticFiles.location("/public");
-  //      port(8080); // Set the port to listen on
-
-  //     get("/getNumber", (req, res) -> Integer.toString(number));
-
-  //     post("/incrementNumber", (req, res) -> {
-  //         number++;
-  //         return "Number incremented";
-  //     });
-
-  //    post("/incrementAndAddNode", (req, res) -> {
-  //     number++;
-
-  //     // Send a response to indicate that the number has been incremented
-  //     res.status(200);
-  //     return "Number incremented";
-  // });
-
-  //     // GSCallGraph callgraph =
-  //     //         new GSCallGraph("CallGraph",
-  //     cat.getEntryPoint().callGraph());
-  //   }
-
   public static void main(String args[])
       throws FileNotFoundException, InterruptedException, IOException {
-    // System.err.println(java.util.Arrays.toString(args));
-
     String[] jCheckerArgs = setEnv(args);
     Cat cat = new Cat();
     cat.program = new Program();
@@ -156,29 +119,14 @@ public class Cat extends Frontend {
     if (exitCode != 0) {
       System.exit(exitCode);
     }
-    CallGraph callgraph = cat.getEntryPoint().callGraph();
 
     String callgraphJson =
         new GSCallGraph("CallGraph", cat.getEntryPoint().callGraph()).toJson();
     System.out.println("JSON: " + callgraphJson);
 
     staticFiles.location("/public");
-    port(8080); // Set the port to listen on
-
-    // get("/getNumber", (req, res) -> Integer.toString(number));
+    port(8080);
     get("/getCallgraphData", (req, res) -> { return callgraphJson; });
-
-    // post("/incrementNumber", (req, res) -> {
-    //     number++;
-    //     return "Number incremented";
-    // });
-
-    //    post("/incrementAndAddNode", (req, res) -> {
-    //     number++;
-
-    //     res.status(200);
-    //     return "Number incremented";
-    // });
   }
 
   /**
