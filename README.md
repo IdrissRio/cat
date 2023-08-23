@@ -1,7 +1,7 @@
 # CAT - CallGraph Analysis Tool
 
 <p align="center">
-  <img width="300"  src="https://raw.githubusercontent.com/idrissrio/cat/main/resources/logo.png">
+  <img width="300"  src="https://raw.githubusercontent.com/idrissrio/cat/main/resources/cat.png">
 </p>
 
 CAT (CallGraph Analysis Tool) is a Java tool that constructs call graphs based 
@@ -137,7 +137,7 @@ java -jar cat.jar ~/Example.java -visualise
 By visiting `http://localhost:8080` in a web browser, we can view the visualisation of the generated call graph.
 
 <p align="center">
-  <img width="300"  src="https://raw.githubusercontent.com/idrissrio/cat/main/resources/CallgraphVisualisation.png">
+  <img width="300"  src="https://raw.githubusercontent.com/idrissrio/cat/main/resources/CallGraphVisualisation.png">
 </p>
 
 The user can choose to view the call graph in different formats, such as a tree or a graph
