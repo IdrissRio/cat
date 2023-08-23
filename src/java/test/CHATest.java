@@ -1,4 +1,4 @@
-/* Copyright (c) 2021, Idriss Riouak <idriss.riouak@cs.lth.se>
+/* Copyright (c) 2023, Idriss Riouak <idriss.riouak@cs.lth.se>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
