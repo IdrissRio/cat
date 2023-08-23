@@ -32,7 +32,6 @@ package org.extendj;
 
 import static spark.Spark.*;
 
-import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -69,11 +68,13 @@ import org.extendj.callgraph.GSCallGraph;
 public class Cat extends Frontend {
 
   public static Object DrAST_root_node;
-  public static Cat Cat;
-  private static int number = 0;
-  public static boolean considerOnlyAttributes = false;
+  public static Cat instance;
+  public boolean considerOnlyAttributes = false;
+  public boolean visualiseCallGraph = false;
+  public boolean saveCallGraph = false;
+  public String callGraphPath = "";
 
-  private static String[] setEnv(String[] args) throws FileNotFoundException {
+  private String[] setEnv(String[] args) throws FileNotFoundException {
     if (args.length < 1) {
       System.err.println("You must specify a source file on the command line!");
       printOptionsUsage();
@@ -95,6 +96,13 @@ public class Cat extends Frontend {
         FEOptions.add("-classpath");
         FEOptions.add(args[++i]);
         break;
+      case "-visualise":
+        visualiseCallGraph = true;
+        break;
+      case "-o":
+        saveCallGraph = true;
+        callGraphPath = args[++i];
+        break;
       default:
         System.err.println("Unrecognized option: " + opt);
         printOptionsUsage();
@@ -105,31 +113,53 @@ public class Cat extends Frontend {
     return FEOptions.toArray(new String[FEOptions.size()]);
   }
 
+  public boolean getConsiderOnlyAttributes() { return considerOnlyAttributes; }
+
+  public boolean getVisualiseCallGraph() { return visualiseCallGraph; }
+
+  public boolean getSaveCallGraph() { return saveCallGraph; }
+
+  public String getCallGraphPath() { return callGraphPath; }
+
+  // Method to access the singleton instance
+  public static Cat getInstance() {
+    if (instance == null) {
+      instance = new Cat();
+    }
+    return instance;
+  }
+
   /**
    * Entry point for the Java checker.
    * @param args command-line arguments
    */
   public static void main(String args[])
       throws FileNotFoundException, InterruptedException, IOException {
-    String[] jCheckerArgs = setEnv(args);
-    Cat cat = new Cat();
-    cat.program = new Program();
-    DrAST_root_node = cat.getEntryPoint();
+    Cat cat = getInstance();
+    String[] jCheckerArgs = cat.setEnv(args);
     int exitCode = cat.run(jCheckerArgs);
 
     if (exitCode != 0) {
       System.exit(exitCode);
     }
-
-    String callgraphJson =
+    log("Starting call graph generation");
+    final String callgraphJson =
         new GSCallGraph("CallGraph", cat.getEntryPoint().callGraph()).toJson();
+    log("Call graph generation finished");
+    if (cat.getSaveCallGraph()) {
+      new GSCallGraph("CallGraph", cat.getEntryPoint().callGraph()).toJson();
+      PrintWriter out = new PrintWriter(cat.getCallGraphPath());
+      out.println(callgraphJson);
+      out.close();
+      log("Call graph saved to " + cat.getCallGraphPath());
+    }
 
-    System.out.println(
-        new GSCallGraph("CallGraph", cat.getEntryPoint().callGraph()));
-
-    staticFiles.location("/public");
-    port(8080);
-    get("/getCallgraphData", (req, res) -> { return callgraphJson; });
+    if (cat.getVisualiseCallGraph()) {
+      log("You can visualize the call graph at http://localhost:8080/index.html");
+      staticFiles.location("/public");
+      port(8080);
+      get("/getCallgraphData", (req, res) -> { return callgraphJson; });
+    }
   }
 
   /**
@@ -174,8 +204,19 @@ public class Cat extends Frontend {
 
   public Program getEntryPoint() { return program; }
 
-  static void printOptionsUsage() {
-    System.out.println("Cat");
+  private static void log(String message) {
+    System.out.println("\u001B[33m[INFO]\u001B[0m: " + message);
+  }
+
+  private void printOptionsUsage() {
+    System.out.println("Usage: java -jar  cat.jar [options] <source_files>");
+    System.out.println("Options:");
+    System.out.println(
+        "  -attributesOnly  Enable consideration of attributes only");
+    System.out.println("  -classpath <path> Specify the classpath");
+    System.out.println("  -visualise        Visualize the call graph");
+    System.out.println(
+        "  -o <path>         Save call graph to a JSON file at the specified path");
     System.exit(1);
   }
 }

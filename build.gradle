@@ -73,7 +73,6 @@ dependencies{
     implementation 'org.graphstream:gs-algo:2.0'
     implementation 'org.graphstream:gs-ui-swing:2.0'
     implementation 'com.sparkjava:spark-core:2.9.3'
-    implementation 'com.google.code.gson:gson:2.8.9'
 }
 
 sourceSets.test{

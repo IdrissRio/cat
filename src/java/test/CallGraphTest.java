@@ -55,7 +55,7 @@ public class CallGraphTest {
 
   @Test
   public void runTest() throws Exception {
-    Cat.considerOnlyAttributes = false;
+
     PrintStream out = System.out;
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
          PrintStream outStream = new PrintStream(baos)) {

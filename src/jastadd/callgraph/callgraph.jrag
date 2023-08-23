@@ -78,9 +78,10 @@ public
   }
 
   syn boolean InvocationTarget.shouldBeConsiderAsMethod() =
-      !Cat.considerOnlyAttributes;
+      !Cat.getInstance().getConsiderOnlyAttributes();
   eq MethodDecl.shouldBeConsiderAsMethod() =
-      (!Cat.considerOnlyAttributes || isAnAttribute()) && hasBlock();
+      (!Cat.getInstance().getConsiderOnlyAttributes() || isAnAttribute()) &&
+      hasBlock();
 
   /**
    * Builds a call graph based on invocation targets.
