@@ -42,7 +42,12 @@ git clone https://github.com/IdrissRio/cat
 cd cat
 ```
 
-3. Build the project.
+3. Download submodules.
+```bash
+git submodule update --init --recursive
+```
+
+4. Build the project.
 ```bash
 ./gradlew build
 ```
