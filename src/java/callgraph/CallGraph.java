@@ -44,7 +44,7 @@ import java.util.Stack;
  */
 public class CallGraph {
   private Map<String, CallGraphNode> graph;
-  private String entryPoint;
+  private CallGraphNode entryPoint;
 
   /**
    * Creates a new CallGraph.
@@ -56,11 +56,10 @@ public class CallGraph {
    *
    * @param entryPoint The name of the entry point method.
    */
-  public CallGraph(String entryPoint) {
+  public CallGraph(CallGraphNode entryPoint) {
     this.entryPoint = entryPoint;
     this.graph = new LinkedHashMap<>();
-    this.graph.put(entryPoint,
-                   new CallGraphNode(entryPoint, new ArrayList<>()));
+    this.graph.put(entryPoint.getMethodName(), entryPoint);
   }
 
   /**
@@ -68,7 +67,7 @@ public class CallGraph {
    *
    * @return The entry point method name.
    */
-  public String getEntryPoint() { return entryPoint; }
+  public CallGraphNode getEntryPoint() { return entryPoint; }
 
   public Map<String, CallGraphNode> getGraph() { return graph; }
 
@@ -117,14 +116,13 @@ public CallGraph union(Set<CallGraph> callGraphs) {
 
     return this;
 }
-
-  /**
-   * Adds a call graph to the current call graph.
-   *
-   * @param callGraph The call graph to be added.
-   */
-  public void addCallGraph(CallGraph callGraph) {
-    Set<String> addedEdges = new HashSet<>();
+Set<String> addedEdges = new HashSet<>();
+/**
+ * Adds a call graph to the current call graph.
+ *
+ * @param callGraph The call graph to be added.
+ */
+public void addCallGraph(CallGraph callGraph) {
 
     // Add nodes and edges from the given call graph
     for (CallGraphNode node : callGraph.graph.values()) {

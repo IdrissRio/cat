@@ -29,4 +29,7 @@ evaluation/antlr-2.7.2/
 
 .ipynb_checkpoints
 
+examples/*/.gradle/
+examples/*/build/
+examples/StateMachine/StateMachine.jar
 

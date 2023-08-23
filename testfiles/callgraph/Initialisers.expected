@@ -1,0 +1,7 @@
+A::A -> PrintStream::println, T::T
+Initialisers::main -> A::A
+Object::<init>
+PrintStream::println
+T::T -> Object::<init>, PrintStream::println, T::clinit<>
+T::clinit<> -> PrintStream::println
+

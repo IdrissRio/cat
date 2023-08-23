@@ -68,11 +68,10 @@ import org.extendj.callgraph.GSCallGraph;
  */
 public class Cat extends Frontend {
 
-  private static String filename;
   public static Object DrAST_root_node;
   public static Cat Cat;
   private static int number = 0;
-  public static boolean considerOnlyAttributes = true;
+  public static boolean considerOnlyAttributes = false;
 
   private static String[] setEnv(String[] args) throws FileNotFoundException {
     if (args.length < 1) {
@@ -82,7 +81,6 @@ public class Cat extends Frontend {
 
     ArrayList<String> FEOptions = new ArrayList<>();
 
-    filename = args[0];
     for (int i = 0; i < args.length; ++i) {
       String opt = args[i];
       if (opt.contains(".java")) {
@@ -90,10 +88,12 @@ public class Cat extends Frontend {
         continue;
       }
       switch (opt) {
+      case "-attributesOnly":
+        considerOnlyAttributes = true;
+        break;
       case "-classpath":
         FEOptions.add("-classpath");
         FEOptions.add(args[++i]);
-        FEOptions.add("-nowarn");
         break;
       default:
         System.err.println("Unrecognized option: " + opt);
@@ -101,6 +101,7 @@ public class Cat extends Frontend {
         break;
       }
     }
+    FEOptions.add("-nowarn");
     return FEOptions.toArray(new String[FEOptions.size()]);
   }
 
@@ -122,7 +123,9 @@ public class Cat extends Frontend {
 
     String callgraphJson =
         new GSCallGraph("CallGraph", cat.getEntryPoint().callGraph()).toJson();
-    System.out.println("JSON: " + callgraphJson);
+
+    System.out.println(
+        new GSCallGraph("CallGraph", cat.getEntryPoint().callGraph()));
 
     staticFiles.location("/public");
     port(8080);

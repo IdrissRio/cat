@@ -37,7 +37,7 @@ jastadd {
                      "--safeLazy",
                      "--visitCheck=false",
                      "--optimize-imports",
-                     "--tracing=compute"]
+                     "--tracing=api"]
   astPackage = 'org.extendj.ast'
   parser.name = 'JavaParser'
   scanner.name = 'OriginalScanner'
@@ -85,6 +85,9 @@ sourceSets.test{
 test {
   useJUnit()
   dependsOn 'cleanTest'
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
 
 
@@ -98,6 +101,17 @@ jar {
     exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
     baseName = 'cat'
 }
+
+task printClasspath {
+    doLast {
+        def classpath = sourceSets.main.compileClasspath.files
+        def classpathString = classpath.collect { it.absolutePath }.join(':')
+        println "Classpath used to compile the project:"
+        println classpathString
+    }
+}
+
+
 
 
 jar.destinationDirectory = projectDir

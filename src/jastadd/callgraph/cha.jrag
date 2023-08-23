@@ -1,0 +1,113 @@
+aspect CHA {
+
+  /**
+   * Represents the set of subtype declarations for a TypeDecl.
+   */
+  coll Set<TypeDecl> TypeDecl.subtypes()[new HashSet<>()] with addAll;
+  ClassDecl contributes subtypesIncludingSelf() to TypeDecl.subtypes() for supertypeTarget();
+  ClassDecl contributes subtypesIncludingSelf() to TypeDecl.subtypes() for each superInterfacesTarget();
+  InterfaceDecl contributes subtypesIncludingSelf() to TypeDecl.subtypes() for supertype();
+  InterfaceDecl contributes subtypesIncludingSelf() to TypeDecl.subtypes() for each superInterfacesTarget();
+
+  /**
+   * Represents the set of supertype declarations for a TypeDecl.
+   */
+  coll Set<TypeDecl> TypeDecl.supertypes()[new HashSet<>()] with add;
+  ClassDecl contributes this to TypeDecl.supertypes() for each subtypes();
+  ParClassDecl contributes this to TypeDecl.supertypes() for each subtypes();
+  InterfaceDecl contributes this to TypeDecl.supertypes() for each subtypes();
+
+  /**
+   * Indicates if the TypeDecl is a parameterized declaration.
+   */
+  syn boolean TypeDecl.isParDecl() = false;
+  eq ParClassDecl.isParDecl() = true;
+  eq ParInterfaceDecl.isParDecl() = true;
+
+  /**
+   * Indicates if the TypeDecl is a raw declaration.
+   */
+  syn boolean TypeDecl.isRawDecl() = false;
+  eq RawClassDecl.isRawDecl() = true;
+  eq RawInterfaceDecl.isRawDecl() = true;
+
+  /**
+   * Gets the generic host declaration for a TypeDecl.
+   */
+  syn TypeDecl TypeDecl.getGenericHostDecl() = this;
+  eq ParClassDecl.getGenericHostDecl() = genericDecl();
+  eq ParInterfaceDecl.getGenericHostDecl() = genericDecl();
+  eq RawClassDecl.getGenericHostDecl() = genericDecl();
+  eq RawInterfaceDecl.getGenericHostDecl() = genericDecl();
+
+  /**
+   * Returns the generc supertype target of a ClassDecl.
+   */
+  syn TypeDecl ClassDecl.supertypeTarget() {
+    if (supertype().isParDecl()) {
+      return ((ParClassDecl)supertype()).genericDecl();
+    } else if (supertype().isRawDecl()) {
+      return ((RawClassDecl)supertype()).genericDecl();
+    } else {
+      return superclass();
+    }
+  }
+
+  /**
+   * Returns the generic super types target of a ClassDecl.
+   */
+  syn java.util.List<TypeDecl> ClassDecl.superInterfacesTarget() {
+    java.util.List<TypeDecl> interfaces = new ArrayList<TypeDecl>();
+    Iterator iter = superInterfaces().iterator();
+    while (iter.hasNext()) {
+      TypeDecl t = (TypeDecl)iter.next();
+      if (t.isParDecl()) {
+        interfaces.add(((ParInterfaceDecl)t).genericDecl());
+      } else if (t.isRawDecl()) {
+        interfaces.add(((RawInterfaceDecl)t).genericDecl());
+      } else {
+        interfaces.add(t);
+      }
+    }
+    return interfaces;
+  }
+
+  /**
+   * Returns the generic super types target of a ClassDecl.
+   */
+  syn java.util.List<TypeDecl> InterfaceDecl.superInterfacesTarget() {
+    java.util.List<TypeDecl> interfaces = new ArrayList<TypeDecl>();
+    Iterator iter = superInterfaces().iterator();
+    while (iter.hasNext()) {
+      TypeDecl t = (TypeDecl)iter.next();
+      if (t.isParDecl()) {
+        interfaces.add(((ParInterfaceDecl)t).genericDecl());
+      } else if (t.isRawDecl()) {
+        interfaces.add(((RawInterfaceDecl)t).genericDecl());
+      } else {
+        interfaces.add(t);
+      }
+    }
+    return interfaces;
+  }
+
+  /**
+   * Represents the set of subtype declarations, including the current type.
+   */
+  syn Set<TypeDecl> TypeDecl.subtypesIncludingSelf() {
+    Set<TypeDecl> subtypes = new HashSet<>(subtypes());
+    subtypes.add(this);
+    return subtypes;
+  }
+
+  syn Set<TypeDecl> InterfaceDecl.subtypesIncludingSelf() {
+    Set<TypeDecl> subtypes = new HashSet<>(subtypes());
+    subtypes.add(this);
+    return subtypes;
+  }
+
+  coll Set<TypeDecl> Program.uniqueTypes()[new LinkedHashSet<>()] with add root
+      Program;
+  ClassDecl contributes this to Program.uniqueTypes();
+  InterfaceDecl contributes this to Program.uniqueTypes();
+}

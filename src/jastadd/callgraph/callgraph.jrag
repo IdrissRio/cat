@@ -5,183 +5,253 @@ import org.extendj.Cat;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-aspect CHA {
-
-  coll Set<TypeDecl> TypeDecl.subtypes()[new HashSet<>()] with addAll;
-  ClassDecl contributes subHelper() to TypeDecl.subtypes() for supertypeTarget();
-  ClassDecl contributes subHelper() to TypeDecl.subtypes() for each superInterfacesTarget();
-  InterfaceDecl contributes subHelper() to TypeDecl.subtypes() for supertype();
-  InterfaceDecl contributes subHelper() to TypeDecl.subtypes() for each superInterfacesTarget();
-
- coll Set<TypeDecl> TypeDecl.supertypes()[new HashSet<>()] with add;
- ClassDecl contributes this to TypeDecl.supertypes() for each subtypes();
- ParClassDecl contributes this to TypeDecl.supertypes() for each subtypes();
- InterfaceDecl contributes this to TypeDecl.supertypes() for each subtypes();
-
- syn boolean TypeDecl.isParDecl() = false;
- eq ParClassDecl.isParDecl() = true;
- eq ParInterfaceDecl.isParDecl() = true;
-
- syn boolean TypeDecl.isRawDecl() = false;
- eq RawClassDecl.isRawDecl() = true;
- eq RawInterfaceDecl.isRawDecl() = true;
-
- syn TypeDecl TypeDecl.getGenericHostDecl() = this;
- eq ParClassDecl.getGenericHostDecl() = genericDecl();
- eq ParInterfaceDecl.getGenericHostDecl() = genericDecl();
- eq RawClassDecl.getGenericHostDecl() = genericDecl();
- eq RawInterfaceDecl.getGenericHostDecl() = genericDecl();
-
- syn TypeDecl ClassDecl.supertypeTarget() {
-   if (supertype().isParDecl()) {
-     return ((ParClassDecl)supertype()).genericDecl();
-   } else if (supertype().isRawDecl()) {
-     return ((RawClassDecl)supertype()).genericDecl();
-   } else {
-     return superclass();
-   }
- }
-
- syn java.util.List<TypeDecl> ClassDecl.superInterfacesTarget() {
-   java.util.List<TypeDecl> interfaces = new ArrayList<TypeDecl>();
-   Iterator iter = superInterfaces().iterator();
-   while (iter.hasNext()) {
-     TypeDecl t = (TypeDecl)iter.next();
-     if (t.isParDecl()) {
-       interfaces.add(((ParInterfaceDecl)t).genericDecl());
-     } else if (t.isRawDecl()) {
-       interfaces.add(((RawInterfaceDecl)t).genericDecl());
-     } else {
-       interfaces.add(t);
-     }
-   }
-   return interfaces;
- }
-
- syn java.util.List<TypeDecl> InterfaceDecl.superInterfacesTarget() {
-   java.util.List<TypeDecl> interfaces = new ArrayList<TypeDecl>();
-   Iterator iter = superInterfaces().iterator();
-   while (iter.hasNext()) {
-     TypeDecl t = (TypeDecl)iter.next();
-     if (t.isParDecl()) {
-       interfaces.add(((ParInterfaceDecl)t).genericDecl());
-     } else if (t.isRawDecl()) {
-       interfaces.add(((RawInterfaceDecl)t).genericDecl());
-     } else {
-       interfaces.add(t);
-     }
-   }
-   return interfaces;
- }
-
- syn Set<TypeDecl> TypeDecl.subHelper() {
-   Set<TypeDecl> subtypes = new HashSet<>(subtypes());
-   subtypes.add(this);
-   return subtypes;
- }
-
- syn Set<TypeDecl> InterfaceDecl.subHelper() {
-   Set<TypeDecl> subtypes = new HashSet<>(subtypes());
-   subtypes.add(this);
-   return subtypes;
- }
-
- coll Set<TypeDecl> Program.allTypes()[new LinkedHashSet<>()] with add root
-     Program;
- ClassDecl contributes this to Program.allTypes();
- InterfaceDecl contributes this to Program.allTypes();
-
- syn String Program.testCHA() {
-   Set<TypeDecl> types = allTypes();
-   StringBuilder sb = new StringBuilder();
-   for (TypeDecl t : types) {
-     Set<String> subtypes = new TreeSet<>();
-     Set<String> supertypes = new TreeSet<>();
-     for (TypeDecl st : t.subtypes()) {
-       subtypes.add(st.fullName());
-     }
-     for (TypeDecl st : t.supertypes()) {
-       supertypes.add(st.fullName());
-     }
-     sb.append(t.fullName() + " :> " + subtypes + "\n");
-     sb.append(t.fullName() + " <: " + supertypes + "\n");
-   }
-   return sb.toString();
- }
-}
-
 aspect CallGraph {
 
- coll Set<MethodAccess> MethodDecl
-     .calledMethods()[new LinkedHashSet<>()] with add;
-  MethodAccess contributes this to MethodDecl.calledMethods() for enclosingMethodDecl();
+  /**
+   * Represents an entity that can be invoked or called.
+   */
+public
+  interface Invocable {
+  }
 
-  coll Set<CallGraph> Program.callGraphs()[new HashSet<>()] with add root
+  MethodAccess implements Invocable;
+  ClassInstanceExpr implements Invocable;
+  SuperConstructorAccess implements Invocable;
+
+  /**
+   * Represents a target that can be the subject of an invocation.
+   */
+public
+  interface InvocationTarget {
+  }
+
+  MethodDecl implements InvocationTarget;
+  ConstructorDecl implements InvocationTarget;
+  InstanceInitializer implements InvocationTarget;
+  StaticInitializer implements InvocationTarget;
+
+  coll Set<Invocable> InvocationTarget
+      .calledMethods()[new LinkedHashSet<>()] with add;
+  Invocable contributes this to InvocationTarget.calledMethods() for enclosingTarget();
+  // Collecting NTAs
+  ClassDecl contributes nta getImplicitConstructorOpt()
+      to InvocationTarget.calledMethods();
+  ConstructorDecl contributes nta getImplicitConstructorInvocation()
+      to ConstructorDecl.calledMethods();
+
+  /**
+   * Collects all the call graphs in the program for each InvocationTarget.
+   */
+  coll Set<CallGraph> Program.allCallGraphs()[new HashSet<>()] with add root
       Program;
-  MethodDecl contributes callGraph() when considerMethod()
-      to Program.callGraphs();
+  InvocationTarget contributes callGraph() when shouldBeConsiderAsMethod()
+      to Program.allCallGraphs();
 
+  /**
+   * Returns the call graph for the whole program.
+   */
   syn CallGraph Program.callGraph() {
     CallGraph g = new CallGraph();
-    g.union(callGraphs());
+    g.union(allCallGraphs());
     return g;
   }
 
-  inh MethodDecl MethodAccess.enclosingMethodDecl();
-  eq MethodDecl.getChild().enclosingMethodDecl() = this;
-  eq Program.getChild().enclosingMethodDecl() = null;
+  /**
+   * Inherited attribute that represents the nearest enclosing invocation target
+   * of an invocable entity.
+   *
+   * @return The nearest enclosing invocation target or null if none.
+   */
+  inh InvocationTarget Invocable.enclosingTarget();
+  eq InvocationTarget.getChild().enclosingTarget() = this;
+  eq Program.getChild().enclosingTarget() = null;
 
-  syn CallGraph MethodDecl.callGraph() {
-    CallGraph g = new CallGraph(methodSignature());
-    Set<MethodDecl> visited = new HashSet<>();
+  /**
+   * Returns the call graph for the current invocation target.
+   */
+  syn CallGraph InvocationTarget.callGraph() {
+    CallGraph g = new CallGraph(
+        new CallGraphNode(targetSignature(), getKindOfAttribute()));
+    Set<InvocationTarget> visited = new HashSet<>();
     callGraphBuilder(g, visited, this, true);
     return g;
   }
 
-  syn boolean MethodDecl.considerMethod() =
-      !Cat.considerOnlyAttributes || isAnAttribute();
+  syn boolean InvocationTarget.shouldBeConsiderAsMethod() =
+      !Cat.considerOnlyAttributes;
+  eq MethodDecl.shouldBeConsiderAsMethod() =
+      (!Cat.considerOnlyAttributes || isAnAttribute()) && hasBlock();
 
+  /**
+   * Builds a call graph based on invocation targets.
+   *
+   * @param g The call graph to populate.
+   * @param visited Set of visited invocation targets to prevent cycles.
+   * @param previous The previous invocation target in the call chain.
+   * @param first Indicates whether this is the first invocation in the call
+   * chain.
+   */
 public
-  void MethodDecl.callGraphBuilder(CallGraph g, Set<MethodDecl> visited,
-                                   MethodDecl previous, boolean first) {
-    if (!first && considerMethod()) {
-     g.addMethodCall(previous.methodSignature(), previous.getKindOfAttribute(),
-                     methodSignature(), getKindOfAttribute());
+  void InvocationTarget.callGraphBuilder(
+      CallGraph g, Set<InvocationTarget> visited, InvocationTarget previous,
+      boolean first) {
+    if (!first && shouldBeConsiderAsMethod()) {
+      addMethodCallToGraph(g, previous, this);
     }
-
     if (!visited.add(this)) {
-     return;
+      return;
     }
+    processCalledMethods(g, visited, previous);
+    processImplicitCalls(g, visited, previous);
+  }
 
-    for (MethodAccess m : calledMethods()) {
-     for (MethodDecl decl : m.allDecls()) {
-       MethodDecl caller = considerMethod() ? this : previous;
-       decl.callGraphBuilder(g, visited, caller, false);
-     }
+  /**
+   * Adds a method call to the call graph.
+   *
+   * @param g The call graph to add the method call to.
+   * @param caller The calling invocation target.
+   * @param callee The called invocation target.
+   */
+public
+  void InvocationTarget.addMethodCallToGraph(
+      CallGraph g, InvocationTarget caller, InvocationTarget callee) {
+    g.addMethodCall(caller.targetSignature(), caller.getKindOfAttribute(),
+                    callee.targetSignature(), callee.getKindOfAttribute());
+  }
+
+  /**
+   * Processes the invocation targets of called methods.
+   *
+   * @param g The call graph to populate.
+   * @param visited Set of visited invocation targets to prevent cycles.
+   * @param previous The previous invocation target in the call chain.
+   */
+public
+  void InvocationTarget.processCalledMethods(
+      CallGraph g, Set<InvocationTarget> visited, InvocationTarget previous) {
+    for (Invocable method : calledMethods()) {
+      for (InvocationTarget decl : method.allDecls()) {
+        InvocationTarget caller = shouldBeConsiderAsMethod() ? this : previous;
+        decl.callGraphBuilder(g, visited, caller, false);
+      }
     }
   }
 
-  syn String MethodDecl.methodSignature() = hostType().name() + "::" + name();
+  /**
+   * Processes the implicit invocation targets.
+   *
+   * @param g The call graph to populate.
+   * @param visited Set of visited invocation targets to prevent cycles.
+   * @param previous The previous invocation target in the call chain.
+   */
+public
+  void InvocationTarget.processImplicitCalls(
+      CallGraph g, Set<InvocationTarget> visited, InvocationTarget previous) {
+    for (InvocationTarget decl : implicitCalls()) {
+      InvocationTarget caller = shouldBeConsiderAsMethod() ? this : previous;
+      decl.callGraphBuilder(g, visited, caller, false);
+    }
+  }
 
-  syn Set<MethodDecl> MethodAccess.allDecls() {
-    Set<MethodDecl> decls = new HashSet<>();
+  /**
+   * Returns a set of implicit call targets for this invocation target.
+   *
+   * @return The set of implicit call targets.
+   */
+  syn Set<InvocationTarget> InvocationTarget.implicitCalls() = new HashSet<>();
+  eq ConstructorDecl.implicitCalls() {
+    Set<InvocationTarget> implicitCallTargets = new HashSet<>();
+    implicitCallTargets.addAll(
+        ((ClassDecl)hostType()).getInstanceInitailizer());
+    implicitCallTargets.addAll(((ClassDecl)hostType()).getStaticInitailizer());
+    return implicitCallTargets;
+  }
+
+  /*
+   * @return The signature of the invocation target.
+   */
+  syn String InvocationTarget.targetSignature() =
+      hostType().name() + "::" + name();
+  eq StaticInitializer.targetSignature() = hostType().name() + "::clinit<>";
+  eq InstanceInitializer.targetSignature() = hostType().name() + "::init<>";
+
+  /**
+   * Returns a set of all declarations of the invocable entity.
+   *
+   * @return A set containing all declarations of the invocable entity.
+   */
+  syn Set<InvocationTarget> Invocable.allDecls() =
+      Collections.singleton(decl());
+  eq MethodAccess.allDecls() {
+    Set<InvocationTarget> decls = new HashSet<>();
     decls.add(decl());
-
     MethodDecl targetDecl = decl();
     TypeDecl host = targetDecl.hostType().getGenericHostDecl();
-
     for (TypeDecl t : host.subtypes()) {
-     if (t instanceof ClassDecl || t instanceof InterfaceDecl) {
-       decls.addAll(t.methods()
-                        .stream()
-                        .filter(md->md.sameSignature(targetDecl))
-                        .collect(Collectors.toList()));
-     }
+      if (t instanceof ClassDecl || t instanceof InterfaceDecl) {
+        decls.addAll(
+            t.methods()
+                .stream()
+                .filter(md->(md.sameSignature(targetDecl) && md.hasBlock()))
+                .collect(Collectors.toList()));
+      }
     }
-
     return decls;
   }
 
+  /**
+   * Indicates whether this body declaration is an instance initializer.
+   *
+   * @return True if this body declaration is an instance initializer, false
+   * otherwise.
+   */
+  syn boolean BodyDecl.isInstanceInitializer() = false;
+  eq InstanceInitializer.isInstanceInitializer() = true;
+
+  /**
+   * Indicates whether this instance initializer is an instance initializer.
+   *
+   * @return True, as this declaration is an instance initializer.
+   */
+  syn boolean BodyDecl.isStaticInitializer() = false;
+  eq StaticInitializer.isStaticInitializer() = true;
+
+  /**
+   * Returns a list of instance initializers declared within the class.
+   *
+   * @return A list of instance initializers.
+   */
+  syn java.util.List<InstanceInitializer> ClassDecl.getInstanceInitailizer() {
+    java.util.List<InstanceInitializer> init = new ArrayList<>();
+    for (BodyDecl bd : getBodyDeclList()) {
+      if (bd.isInstanceInitializer()) {
+        init.add((InstanceInitializer)bd);
+      }
+    }
+    return init;
+  }
+
+  /**
+   * Returns a list of static initializers declared within the class.
+   *
+   * @return A list of static initializers.
+   */
+  syn java.util.List<StaticInitializer> ClassDecl.getStaticInitailizer() {
+    java.util.List<StaticInitializer> init = new ArrayList<>();
+    for (BodyDecl bd : getBodyDeclList()) {
+      if (bd.isStaticInitializer()) {
+        init.add((StaticInitializer)bd);
+      }
+    }
+    return init;
+  }
+
+  /**
+   * Inherited attribute that represents the type declaration where this method
+   * is declared.
+   *
+   * @return The type declaration where this method is declared.
+   */
   inh TypeDecl MethodDecl.declaredIn();
   eq ClassDecl.getChild().declaredIn() = this;
   eq InterfaceDecl.getChild().declaredIn() = this;
@@ -220,8 +290,8 @@ aspect AttributeKind {
   syn boolean Modifier.isCircularAttribute() = false;
   eq Annotation.isCircularAttribute() = getKind().equals("isCircular");
 
-private
-  boolean MethodDecl.hasAttributeInModifiers(
+public
+  boolean InvocationTarget.hasAttributeInModifiers(
       Iterable<Modifier> modifiers, Predicate<Modifier> attributeCheck) {
     for (Modifier m : modifiers) {
       if (attributeCheck.test(m)) {
@@ -231,32 +301,37 @@ private
     return false;
   }
 
-  syn boolean MethodDecl.isAnAttribute() {
+  syn boolean InvocationTarget.isAnAttribute() = false;
+  eq MethodDecl.isAnAttribute() {
     return hasAttributeInModifiers(getModifiers().getModifiers(),
                                    Modifier::isAnAttribute);
   }
 
-  syn boolean MethodDecl.isSynAttribute() {
+  syn boolean InvocationTarget.isSynAttribute() = false;
+  eq MethodDecl.isSynAttribute() {
     return hasAttributeInModifiers(getModifiers().getModifiers(),
                                    Modifier::isSynAttribute);
   }
 
-  syn boolean MethodDecl.isInhAttribute() {
+  syn boolean InvocationTarget.isInhAttribute() = false;
+  eq MethodDecl.isInhAttribute() {
     return hasAttributeInModifiers(getModifiers().getModifiers(),
                                    Modifier::isInhAttribute);
   }
 
-  syn boolean MethodDecl.isCircularAttribute() {
+  syn boolean InvocationTarget.isCircularAttribute() = false;
+  eq MethodDecl.isCircularAttribute() {
     return hasAttributeInModifiers(getModifiers().getModifiers(),
                                    Modifier::isCircularAttribute);
   }
 
-  syn boolean MethodDecl.isCollectionAttribute() {
+  syn boolean InvocationTarget.isCollectionAttribute() = false;
+  eq MethodDecl.isCollectionAttribute() {
     return hasAttributeInModifiers(getModifiers().getModifiers(),
                                    Modifier::isCollectionAttribute);
   }
 
-  syn java.util.List<String> MethodDecl.getKindOfAttribute() {
+  syn java.util.List<String> InvocationTarget.getKindOfAttribute() {
     java.util.List<String> kinds = new ArrayList<String>();
     if (isSynAttribute()) {
       kinds.add("syn");

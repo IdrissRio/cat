@@ -1,0 +1,53 @@
+#
+# Attribute specification
+#
+syn lazy int Root.a1() circular[0] = Math.min(3, a2()+1);
+syn lazy int Root.a2() = a3();
+syn lazy int Root.a3() = a4();
+syn lazy int Root.a4() = a5();
+syn lazy int Root.a5() = a1();
+
+
+#
+# Expected value
+#
+Root r = new Root();
+System.out.println("a1: " + r.a1());    // 3
+System.out.println("a2: " + r.a2());    // 3
+System.out.println("a3: " + r.a3());    // 3
+System.out.println("a4: " + r.a4());    // 3
+System.out.println("a5: " + r.a5());    // 3
+
+
+#
+# Number of evaluations using different options
+#
+
+# Options/flags:
+- 1 circular: declaring a1 as circular
+- 5 circular: declaring a1-a5 as circular
+- safeLazy: requires one attribute (instance) on a cycle to be declared as circular
+- cacheCycle: cache all attribute (instances) on the cycle after a fix point has been reached
+
+# Number of evaluations per attribute:
+- 1 circular, safeLazy, cacheCycle=true
+  {a1=5, a2=6, a3=6, a4=6, a5=6}
+
+- 1 circular, safeLazy, cacheCycle=false
+  {a1=4, a2=5, a3=5, a4=5, a5=5}
+
+- 6 circular, safeLazy, cacheCycle=true
+  {a1=6, a2=6, a3=6, a4=6, a5=6}
+
+- 6 circular, safeLazy, cacheCyle=false
+  Different result depending on which attribute is invoked first, e.g.,
+  {a1=5, a2=6, a3=7, a4=8, a5=9}    (invokation order: a1, a2, a3, a4, a4)
+  {a1=8, a2=8, a3=5, a4=6, a5=7}    (invokation order: a3, a4, a5, a2, a1)
+
+- 6 circular, cacheCycle=true
+  {a1=6, a2=6, a3=6, a4=6, a5=6}
+
+- 6 circular, cacheCycle=false
+  Different result depending on which attribute is invoked first, e.g.,
+  {a1=5, a2=6, a3=7, a4=8, a5=9}    (invokation order: a1, a2, a3, a4, a4)
+  {a1=8, a2=8, a3=5, a4=6, a5=7}    (invokation order: a3, a4, a5, a2, a1)

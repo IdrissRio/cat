@@ -1,0 +1,71 @@
+Experiment 1:
+Root.C1() -> CIRCULAR
+
+Options: --cache=all, --cacheCycle=false --safeLazy
+Note: Original JastAdd 
+Note: Same result with new JastAdd
+
+Results:
+STACKOVERFLOW
+
+---------------------------------------------
+Experiment 2:
+Root.C1() -> CIRCULAR
+Root.C4() -> CIRCULAR
+
+Options: --cache=all, --cacheCycle=false --safeLazy
+Note: Original JastAdd
+
+
+Results Original JastAdd:
+r1:{C1=3, C2=4, C3=8, C4=4, N=4}
+r2:{C1=2, C2=3, C3=4, C4=3, N=1}
+
+Results New JastAdd:
+r1:{C1=2, C2=3, C3=4, C4=3, N=1}
+r2:{C1=2, C2=3, C3=4, C4=3, N=1}
+
+---------------------------------------------
+Experiment 3:
+Root.C4() -> CIRCULAR
+
+Options: --cache=all, --cacheCycle=false --safeLazy
+Note: Original JastAdd
+Note: Same result with new JastAdd
+
+Results:
+STACKOVERFLOW
+
+----------------------------------------------
+Experiment 4:
+
+Root.*() -> CIRCULAR
+
+
+Options: --cache=all, --cacheCycle=false --safeLazy
+Note: Original JastAdd
+Note: Same result with new JastAdd
+
+
+Results:
+r1:{C1=4, C2=5, C3=7, C4=8, N=6}
+r2:{C1=4, C2=3, C3=5, C4=6, N=4}
+
+
+----------------------------------------------
+Experiment 5:
+
+Root.*() -> CIRCULAR
+
+
+Options: --cache=all, --cacheCycle=true --safeLazy
+Note: Original JastAdd
+Note: Same result with new JastAdd
+Note: we obtain the same result with --cache=none.
+
+Results:
+r1:{C1=5, C2=5, C3=5, C4=5, N=5}
+r2:{C1=4, C2=4, C3=5, C4=5, N=5}
+
+
+#############################################################################

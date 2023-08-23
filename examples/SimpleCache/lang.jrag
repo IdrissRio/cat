@@ -1,0 +1,52 @@
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.TreeMap;
+
+aspect Semantics {
+public
+  Map<String, Integer> Root.count = new TreeMap<>();
+
+public
+  void Root.count(String attr) {
+    if (count.containsKey(attr)) {
+      count.put(attr, count.get(attr) + 1);
+    } else {
+      count.put(attr, 1);
+    }
+  }
+
+  syn int Root.C1() circular[0] {
+    count("C1");
+    int r = Math.min(3, C2() + 1);
+    // System.out.println("computed C1 to " + r);
+    return r;
+  }
+  syn int Root.C2()circular[0] {
+    count("C2");
+    int r = N() + C1();
+    // System.out.println("computed C2 to " + r);
+    return r;
+  }
+
+  syn int Root.N() {
+    count("N");
+    int r = C3();
+    // System.out.println("computed N to " + r);
+    return r;
+  }
+
+  syn int Root.C3() circular[0]{
+    count("C3");
+    int r = Math.min(3, C4() + 1);
+    // System.out.println("computed C3 to " + r);
+    return r;
+  }
+
+  syn int Root.C4()  {
+    count("C4");
+    int r = C3() + 1;
+    // System.out.println("computed C4 to " + r);
+    return r;
+  }
+}

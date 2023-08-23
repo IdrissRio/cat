@@ -67,7 +67,7 @@ public class CHATest {
       }
 
       Program program = jChecker.getEntryPoint();
-      Set<TypeDecl> types = program.allTypes();
+      Set<TypeDecl> types = program.uniqueTypes();
       StringBuilder sb = new StringBuilder();
       for(TypeDecl t: types){
         Set<String> subtypes = new TreeSet<>();

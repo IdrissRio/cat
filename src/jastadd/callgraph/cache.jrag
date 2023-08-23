@@ -1,0 +1,9 @@
+aspect CacheSettings {
+  cache MethodDecl.targetSignature();
+  cache MethodAccess.allDecls();
+  cache MethodDecl.callGraph();
+  cache InterfaceDecl.superInterfacesTarget();
+  cache ClassDecl.superInterfacesTarget();
+  cache ClassDecl.supertypeTarget();
+  cache TypeDecl.getGenericHostDecl();
+}

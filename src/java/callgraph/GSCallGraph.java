@@ -44,6 +44,8 @@ import org.graphstream.graph.implementations.SingleGraph;
 public class GSCallGraph extends SingleGraph {
 
   private CallGraph callgraph = null;
+  private TarjanStronglyConnectedComponents tscc =
+      new TarjanStronglyConnectedComponents();
 
   public GSCallGraph(String id) {
     super(id);
@@ -92,16 +94,15 @@ public class GSCallGraph extends SingleGraph {
         }
 
         String edgeId = nodeId + calleeId;
-
-        if (!edges().anyMatch(e -> e.getId().equals(edgeId))) {
-          try {
-            addEdge(edgeId, nodeId, calleeId, true);
-          } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-          }
+        try {
+          addEdge(edgeId, nodeId, calleeId, true);
+        } catch (Exception e) {
+          System.out.println("Error: " + e.getMessage());
         }
       }
     }
+    tscc.init(this);
+    tscc.compute();
   }
 
   private static String getNodeId(String methodName) {
@@ -112,9 +113,9 @@ public class GSCallGraph extends SingleGraph {
     StringBuilder sb = new StringBuilder();
     for (Node n : this) {
       String label = (String)n.getAttribute("ui.label");
-      String sccIndex = label.substring(label.lastIndexOf("-") + 1);
-      Integer sccIndexInt = Integer.parseInt(sccIndex);
-      String name = label.substring(0, label.lastIndexOf("-"));
+      Integer sccIndexInt =
+          (Integer)n.getAttribute(tscc.getSCCIndexAttribute());
+      String name = label;
 
       // Check if the node has a self loop
       final boolean[] hasSelfLoop = {false}; // Using a boolean array
@@ -131,12 +132,7 @@ public class GSCallGraph extends SingleGraph {
     return sb.toString();
   }
 
-
- public String toJson() {
-    TarjanStronglyConnectedComponents tscc =
-        new TarjanStronglyConnectedComponents();
-    tscc.init(this);
-    tscc.compute();
+  public String toJson() {
 
     StringBuilder jsonBuilder = new StringBuilder();
     jsonBuilder.append("{");
@@ -189,6 +185,5 @@ public class GSCallGraph extends SingleGraph {
     jsonBuilder.append("}");
 
     return jsonBuilder.toString();
-}
-
+  }
 }
