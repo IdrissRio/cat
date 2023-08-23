@@ -20,8 +20,7 @@ jastadd {
     include("extendj/jastadd_modules") // Include core ExtendJ modules.
 
     module "cat", {
-      imports "java8 frontend" // ExtendJ dependency for cat module.
-
+      imports "java11 frontend" // ExtendJ dependency for cat module.
       jastadd {
         basedir "src/jastadd/"
         include "**/*.ast"
