@@ -25,7 +25,7 @@ CAT (CallGraph Analysis Tool) is designed to facilitate the analysis of call gra
 
 ## Features
 
-- **Call Graph Generation**: CAT generates call graphs for Java programs using Class Hierarchy Analysis techniques.
+- **Call Graph Generation**: CAT generates call graphs for Java programs using Class Hierarchy Analysis.
 - **Web-based Visualisation**: CAT provides a web-based visualisation tool to visualise the generated call graphs.
 - **Command-line Interface**: CAT provides a command-line interface to generate call graphs for Java programs.
 - **JSON Output**: CAT outputs the generated call graphs in JSON format.
