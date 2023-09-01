@@ -1,3 +1,4 @@
+package org.extendj.callgraph;
 public class CHAPaper2 {
   public void main() {
     H h = new H();

@@ -60,19 +60,17 @@ import org.extendj.ast.CompilationUnit;
 import org.extendj.ast.Frontend;
 import org.extendj.ast.Program;
 import org.extendj.callgraph.CallGraph;
-import org.extendj.callgraph.GSCallGraph;
 
 /**
  * Perform static semantic checks on a Java program.
  */
 public class Cat extends Frontend {
-
-  public static Object DrAST_root_node;
-  public static Cat instance;
   public boolean considerOnlyAttributes = false;
   public boolean visualiseCallGraph = false;
   public boolean saveCallGraph = false;
   public String callGraphPath = "";
+  public static Object DrAST_root_node;
+  ;
 
   private String[] setEnv(String[] args) throws FileNotFoundException {
     if (args.length < 1) {
@@ -121,33 +119,29 @@ public class Cat extends Frontend {
 
   public String getCallGraphPath() { return callGraphPath; }
 
-  // Method to access the singleton instance
-  public static Cat getInstance() {
-    if (instance == null) {
-      instance = new Cat();
-    }
-    return instance;
-  }
-
   /**
    * Entry point for the Java checker.
    * @param args command-line arguments
    */
   public static void main(String args[])
       throws FileNotFoundException, InterruptedException, IOException {
-    Cat cat = getInstance();
+    Cat cat = new Cat();
     String[] jCheckerArgs = cat.setEnv(args);
+    cat.getEntryPoint().attributesOnly = cat.getConsiderOnlyAttributes();
     int exitCode = cat.run(jCheckerArgs);
-
+    DrAST_root_node = cat.getEntryPoint();
     if (exitCode != 0) {
       System.exit(exitCode);
     }
     log("Starting call graph generation");
-    final String callgraphJson =
-        new GSCallGraph("CallGraph", cat.getEntryPoint().callGraph()).toJson();
+    CallGraph cg = cat.getEntryPoint().callGraph();
     log("Call graph generation finished");
+    log("Starting SCC computation");
+    cg.computeSCCs();
+    log("SCC computation finished");
+
+    String callgraphJson = cg.toJson();
     if (cat.getSaveCallGraph()) {
-      new GSCallGraph("CallGraph", cat.getEntryPoint().callGraph()).toJson();
       PrintWriter out = new PrintWriter(cat.getCallGraphPath());
       out.println(callgraphJson);
       out.close();

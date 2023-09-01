@@ -1,3 +1,4 @@
+package org.extendj.callgraph;
 class A extends T {
   public A() { System.out.println("A"); }
 }

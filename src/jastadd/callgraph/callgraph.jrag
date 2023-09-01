@@ -107,11 +107,13 @@ public
     return g;
   }
 
+public
+  boolean Program.attributesOnly = false;
+
   syn boolean InvocationTarget.shouldBeConsiderAsMethod() =
-      !Cat.getInstance().getConsiderOnlyAttributes();
+      !program().attributesOnly;
   eq MethodDecl.shouldBeConsiderAsMethod() =
-      (!Cat.getInstance().getConsiderOnlyAttributes() || isAnAttribute()) &&
-      hasBlock();
+      (!program().attributesOnly || isAnAttribute()) && hasBlock();
 
   /**
    * Builds a call graph based on invocation targets.
@@ -202,9 +204,34 @@ public
    * @return The signature of the invocation target.
    */
   syn String InvocationTarget.targetSignature() =
-      hostType().name() + "::" + name();
-  eq StaticInitializer.targetSignature() = hostType().name() + "::clinit<>";
-  eq InstanceInitializer.targetSignature() = hostType().name() + "::init<>";
+      (program().attributesOnly
+           ? ""
+           : hostType().packageName() + "." + hostType().name()) +
+      "::" + fullSignature();
+  eq StaticInitializer.targetSignature() =
+      hostType().packageName() + "." + hostType().name() + "::clinit<>";
+  eq InstanceInitializer.targetSignature() =
+      hostType().packageName() + "." + hostType().name() + "::init<>";
+
+  /** Method signature, including type arguments.  */
+  syn String ConstructorDecl.fullSignature() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(name() + "(");
+    for (int i = 0; i < getNumParameter(); i++) {
+      if (i != 0) {
+        sb.append(", ");
+      }
+      // TODO: TypeDecl.fullName() should not include @primitive.
+      TypeDecl paramType = getParameter(i).type();
+      if (paramType instanceof PrimitiveType) {
+        sb.append(paramType.typeName());
+      } else {
+        sb.append(paramType.fullName());
+      }
+    }
+    sb.append(")");
+    return sb.toString();
+  }
 
   /**
    * Returns a set of all declarations of the invocable entity.

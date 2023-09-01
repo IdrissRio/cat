@@ -67,10 +67,6 @@ sourceSets.main {
 dependencies{
     testImplementation 'junit:junit:4.12'
     implementation 'junit:junit:4.12'
-    implementation 'org.graphstream:gs-core:2.0'
-    implementation 'org.graphstream:gs-ui-swing:2.0'
-    implementation 'org.graphstream:gs-algo:2.0'
-    implementation 'org.graphstream:gs-ui-swing:2.0'
     implementation 'com.sparkjava:spark-core:2.9.3'
 }
 

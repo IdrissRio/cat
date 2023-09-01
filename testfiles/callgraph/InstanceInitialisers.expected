@@ -1,7 +1,7 @@
-A::A -> PrintStream::println, T::T
-InstanceInitialisers::main -> A::A
-Object::<init>
-PrintStream::println
-T::T -> Object::<init>, PrintStream::println, T::init<>
-T::init<> -> PrintStream::println
+java.io.PrintStream::println(java.lang.String)
+java.lang.Object::<init>()
+org.extendj.callgraph.A::A() -> java.io.PrintStream::println(java.lang.String), org.extendj.callgraph.T::T()
+org.extendj.callgraph.InstanceInitialisers::main(String[]) -> org.extendj.callgraph.A::A()
+org.extendj.callgraph.T::T() -> java.io.PrintStream::println(java.lang.String), java.lang.Object::<init>(), org.extendj.callgraph.T::init<>
+org.extendj.callgraph.T::init<> -> java.io.PrintStream::println(java.lang.String)
 

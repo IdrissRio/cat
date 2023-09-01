@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import org.extendj.callgraph.CallGraphNode;
 
 /**
  * Represents the call graph.
@@ -45,6 +46,7 @@ import java.util.Stack;
 public class CallGraph {
   private Map<String, CallGraphNode> graph;
   private CallGraphNode entryPoint;
+  private int sccCounter = 0;
 
   /**
    * Creates a new CallGraph.
@@ -117,6 +119,7 @@ public CallGraph union(Set<CallGraph> callGraphs) {
     return this;
 }
 Set<String> addedEdges = new HashSet<>();
+
 /**
  * Adds a call graph to the current call graph.
  *
@@ -145,44 +148,153 @@ public void addCallGraph(CallGraph callGraph) {
     }
   }
 
-/**
-     * Convert the CallGraph to a JSON string.
-     *
-     * @return JSON representation of the CallGraph.
-     */
-    public String toJson() {
-        StringBuilder jsonBuilder = new StringBuilder();
-        jsonBuilder.append("{");
-    
-        
-        // Add nodes
-        jsonBuilder.append("\"nodes\": [");
-        boolean isFirstNode = true;
-        for (CallGraphNode node : graph.values()) {
-            if (!isFirstNode) {
-                jsonBuilder.append(", ");
-            }
-            jsonBuilder.append("{");
-            jsonBuilder.append("\"methodName\": \"").append(node.getMethodName()).append("\", ");
-            
-            // Add callees
-            jsonBuilder.append("\"callees\": [");
-            boolean isFirstCallee = true;
-            for (CallGraphNode callee : node.getCallees()) {
-                if (!isFirstCallee) {
-                    jsonBuilder.append(", ");
-                }
-                jsonBuilder.append("\"").append(callee.getMethodName()).append("\"");
-                isFirstCallee = false;
-            }
-            jsonBuilder.append("]");
-            jsonBuilder.append("}");
-            isFirstNode = false;
-        }
-        jsonBuilder.append("]");
-        
-        jsonBuilder.append("}");
-        
-        return jsonBuilder.toString();
+  /**
+   * Computes the SCCs in the call graph using Kosaraju's algorithm.
+   */
+  public void computeSCCs() {
+    Stack<CallGraphNode> stack = new Stack<>();
+    Set<CallGraphNode> visited = new HashSet<>();
+
+    // First DFS to populate the stack
+    for (CallGraphNode node : graph.values()) {
+      if (!visited.contains(node)) {
+        dfs(node, stack, visited);
+      }
     }
+
+    // Transpose the graph
+    Map<String, CallGraphNode> transposedGraph = transposeGraph();
+
+    // Reset visited set
+    visited.clear();
+
+    // Second DFS to assign SCC IDs
+    while (!stack.isEmpty()) {
+      CallGraphNode node = stack.pop();
+      if (!visited.contains(node)) {
+        sccCounter++;
+        assignSCCID(node, transposedGraph, visited);
+      }
+    }
+  }
+
+  // Helper method for the first DFS
+  private void dfs(CallGraphNode node, Stack<CallGraphNode> stack,
+                   Set<CallGraphNode> visited) {
+    visited.add(node);
+    for (CallGraphNode callee : node.getCallees()) {
+      if (!visited.contains(callee)) {
+        dfs(callee, stack, visited);
+      }
+    }
+    stack.push(node);
+  }
+
+  // Helper method for transposing the graph
+  private Map<String, CallGraphNode> transposeGraph() {
+    Map<String, CallGraphNode> transposedGraph = new LinkedHashMap<>();
+    for (CallGraphNode node : graph.values()) {
+      transposedGraph.put(
+          node.getMethodName(),
+          new CallGraphNode(node.getMethodName(), node.getKinds()));
+    }
+    for (CallGraphNode node : graph.values()) {
+      for (CallGraphNode callee : node.getCallees()) {
+        transposedGraph.get(callee.getMethodName())
+            .addCallee(transposedGraph.get(node.getMethodName()));
+      }
+    }
+    return transposedGraph;
+  }
+
+  // Helper method for the second DFS to assign SCC IDs
+  private void assignSCCID(CallGraphNode node,
+                           Map<String, CallGraphNode> transposedGraph,
+                           Set<CallGraphNode> visited) {
+    visited.add(node);
+    node.setSccID(sccCounter);
+    for (CallGraphNode caller :
+         transposedGraph.get(node.getMethodName()).getCallers()) {
+      if (!visited.contains(caller)) {
+        assignSCCID(caller, transposedGraph, visited);
+      }
+    }
+  }
+
+  /**
+   * Convert the CallGraph to a JSON string.
+   *
+   * @return JSON representation of the CallGraph.
+   */
+  public String toJson() {
+    Map<Integer, Integer> sccIdCounts = new HashMap<>();
+
+    // Count the nodes for each SCC ID
+    for (CallGraphNode node : graph.values()) {
+      Integer sccID = node.getSccID();
+      sccIdCounts.put(sccID, sccIdCounts.getOrDefault(sccID, 0) + 1);
+    }
+
+    StringBuilder jsonBuilder = new StringBuilder();
+    jsonBuilder.append("{");
+
+    // Add nodes
+    jsonBuilder.append("\"nodes\": [");
+    boolean isFirstNode = true;
+    for (CallGraphNode node : graph.values()) {
+      if (!isFirstNode) {
+        jsonBuilder.append(", ");
+      }
+
+      String methodName = node.getMethodName();
+      Integer sccID = node.getSccID();
+      List<String> kindList = node.getKinds();
+      boolean isUniqueSCCAndNoSelfLoop = sccIdCounts.get(sccID) == 1;
+
+      jsonBuilder.append("{\"methodName\": \"")
+          .append(methodName)
+          .append("\", ");
+      jsonBuilder.append("\"sccId\": ").append(sccID).append(", ");
+      jsonBuilder.append("\"uniqueSCCAndNoSelfLoop\": ")
+          .append(isUniqueSCCAndNoSelfLoop)
+          .append(", ");
+
+      jsonBuilder.append("\"kind\": [");
+      for (int i = 0; i < kindList.size(); i++) {
+        if (i > 0) {
+          jsonBuilder.append(", ");
+        }
+        jsonBuilder.append("\"").append(kindList.get(i)).append("\"");
+      }
+      jsonBuilder.append("]");
+
+      jsonBuilder.append("}");
+
+      isFirstNode = false;
+    }
+    jsonBuilder.append("]");
+
+    // Add edges (assuming your graph is directed)
+    jsonBuilder.append(", \"edges\": [");
+    boolean isFirstEdge = true;
+    for (CallGraphNode caller : graph.values()) {
+      for (CallGraphNode callee : caller.getCallees()) {
+        if (!isFirstEdge) {
+          jsonBuilder.append(", ");
+        }
+        jsonBuilder.append("{\"source\": \"")
+            .append(caller.getMethodName())
+            .append("\", ");
+        jsonBuilder.append("\"target\": \"")
+            .append(callee.getMethodName())
+            .append("\"}");
+        isFirstEdge = false;
+      }
+    }
+    jsonBuilder.append("]");
+
+    jsonBuilder.append("}");
+
+    return jsonBuilder.toString();
+  }
 }

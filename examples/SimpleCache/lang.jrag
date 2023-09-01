@@ -29,7 +29,7 @@ public
     return r;
   }
 
-  syn int Root.N() {
+  syn lazy int Root.N() {
     count("N");
     int r = C3();
     // System.out.println("computed N to " + r);

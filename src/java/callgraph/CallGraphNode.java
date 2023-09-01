@@ -42,8 +42,8 @@ public class CallGraphNode {
   private String methodName;
   private List<CallGraphNode> callees;
   private List<CallGraphNode> callers;
-  private Integer sscID;
   private List<String> kinds = new ArrayList<>();
+  private int sccID;
 
   /**
    * Creates a new CallGraphNode with the given method name.
@@ -55,27 +55,11 @@ public class CallGraphNode {
     this.callees = new ArrayList<>();
     this.callers = new ArrayList<>();
     this.kinds = kinds;
+    this.sccID = -1;
   }
   
 
   public List<String> getKinds() { return kinds; }
-
-
-
-
-  /**
-   * Sets the sscID of the current node.
-   *
-   * @param sscID The sscID to set.
-   */
-  public void setSscID(Integer sscID) { this.sscID = sscID; }
-
-  /**
-   * Gets the sscID of the current node.
-   *
-   * @return The sscID.
-   */
-  public Integer getSscID() { return sscID; }
 
   /**
    * Adds a callee to the current node's list of callees.
@@ -134,4 +118,18 @@ public class CallGraphNode {
     }
     return sb.toString();
   }
+
+  /**
+   * Sets the sscID of the current node.
+   *
+   * @param sscID The sscID to set.
+   */
+  public void setSccID(Integer sscID) { this.sccID = sccID; }
+
+  /**
+   * Gets the sscID of the current node.
+   *
+   * @return The sscID.
+   */
+  public Integer getSccID() { return sccID; }
 }

@@ -32,4 +32,9 @@ evaluation/antlr-2.7.2/
 examples/*/.gradle/
 examples/*/build/
 examples/StateMachine/StateMachine.jar
+examples/*/bin/
+examples/*/out/
+examples/*/ast/
+examples/*/Makefile
+
 
