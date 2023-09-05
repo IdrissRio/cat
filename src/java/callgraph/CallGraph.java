@@ -148,37 +148,44 @@ public void addCallGraph(CallGraph callGraph) {
     }
   }
 
-  /**
-   * Computes the SCCs in the call graph using Kosaraju's algorithm.
-   */
   public void computeSCCs() {
     Stack<CallGraphNode> stack = new Stack<>();
     Set<CallGraphNode> visited = new HashSet<>();
+    int currentSccId = 0;
 
-    // First DFS to populate the stack
+    // Step 1: Perform DFS on the original graph and fill the stack
     for (CallGraphNode node : graph.values()) {
       if (!visited.contains(node)) {
         dfs(node, stack, visited);
       }
     }
 
-    // Transpose the graph
-    Map<String, CallGraphNode> transposedGraph = transposeGraph();
+    // Step 2: Reverse the graph
+    CallGraph reversedGraph = reverseGraph();
 
-    // Reset visited set
+    // Step 3: Perform DFS on the reversed graph using the order from the stack
     visited.clear();
-
-    // Second DFS to assign SCC IDs
     while (!stack.isEmpty()) {
       CallGraphNode node = stack.pop();
       if (!visited.contains(node)) {
-        sccCounter++;
-        assignSCCID(node, transposedGraph, visited);
+        System.err.println("Performing DFS on " + node.getMethodName());
+        reversedGraph.dfs(node, currentSccId, visited);
+        currentSccId++;
       }
     }
   }
 
-  // Helper method for the first DFS
+  private CallGraph reverseGraph() {
+    CallGraph reversedGraph = new CallGraph();
+    for (CallGraphNode node : graph.values()) {
+      for (CallGraphNode callee : node.getCallees()) {
+        reversedGraph.addMethodCall(callee.getMethodName(), callee.getKinds(),
+                                    node.getMethodName(), node.getKinds());
+      }
+    }
+    return reversedGraph;
+  }
+
   private void dfs(CallGraphNode node, Stack<CallGraphNode> stack,
                    Set<CallGraphNode> visited) {
     visited.add(node);
@@ -187,36 +194,18 @@ public void addCallGraph(CallGraph callGraph) {
         dfs(callee, stack, visited);
       }
     }
-    stack.push(node);
+    stack.push(node); // Push the node after visiting all its neighbors
   }
 
-  // Helper method for transposing the graph
-  private Map<String, CallGraphNode> transposeGraph() {
-    Map<String, CallGraphNode> transposedGraph = new LinkedHashMap<>();
-    for (CallGraphNode node : graph.values()) {
-      transposedGraph.put(
-          node.getMethodName(),
-          new CallGraphNode(node.getMethodName(), node.getKinds()));
-    }
-    for (CallGraphNode node : graph.values()) {
-      for (CallGraphNode callee : node.getCallees()) {
-        transposedGraph.get(callee.getMethodName())
-            .addCallee(transposedGraph.get(node.getMethodName()));
-      }
-    }
-    return transposedGraph;
-  }
-
-  // Helper method for the second DFS to assign SCC IDs
-  private void assignSCCID(CallGraphNode node,
-                           Map<String, CallGraphNode> transposedGraph,
-                           Set<CallGraphNode> visited) {
+  private void dfs(CallGraphNode node, int currentSccId,
+                   Set<CallGraphNode> visited) {
     visited.add(node);
-    node.setSccID(sccCounter);
-    for (CallGraphNode caller :
-         transposedGraph.get(node.getMethodName()).getCallers()) {
+    System.err.println("Setting SCC ID of " + node.getMethodName() + " to " +
+                       currentSccId);
+    node.setSccID(currentSccId); // Set the SCC ID for the current node
+    for (CallGraphNode caller : node.getCallers()) {
       if (!visited.contains(caller)) {
-        assignSCCID(caller, transposedGraph, visited);
+        dfs(caller, currentSccId, visited);
       }
     }
   }

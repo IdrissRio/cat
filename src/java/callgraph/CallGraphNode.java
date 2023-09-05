@@ -55,7 +55,7 @@ public class CallGraphNode {
     this.callees = new ArrayList<>();
     this.callers = new ArrayList<>();
     this.kinds = kinds;
-    this.sccID = -1;
+    this.sccID = 0;
   }
   
 
@@ -124,7 +124,7 @@ public class CallGraphNode {
    *
    * @param sscID The sscID to set.
    */
-  public void setSccID(Integer sscID) { this.sccID = sccID; }
+  public void setSccID(Integer sscID) { this.sccID = sscID; }
 
   /**
    * Gets the sscID of the current node.
