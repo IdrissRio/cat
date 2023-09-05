@@ -148,6 +148,11 @@ public void addCallGraph(CallGraph callGraph) {
     }
   }
 
+  /**
+   * Computes the Strongly Connected Components (SCCs) of the CallGraph using
+   * Kosaraju's algorithm. The SCCs are computed and labeled with unique IDs in
+   * this method.
+   */
   public void computeSCCs() {
     Stack<CallGraphNode> stack = new Stack<>();
     Set<CallGraphNode> visited = new HashSet<>();
@@ -168,13 +173,18 @@ public void addCallGraph(CallGraph callGraph) {
     while (!stack.isEmpty()) {
       CallGraphNode node = stack.pop();
       if (!visited.contains(node)) {
-        System.err.println("Performing DFS on " + node.getMethodName());
         reversedGraph.dfs(node, currentSccId, visited);
         currentSccId++;
       }
     }
   }
 
+  /**
+   * Reverse the current CallGraph to create a new CallGraph with edges
+   * reversed.
+   *
+   * @return A new CallGraph instance with the edges reversed.
+   */
   private CallGraph reverseGraph() {
     CallGraph reversedGraph = new CallGraph();
     for (CallGraphNode node : graph.values()) {
@@ -186,6 +196,14 @@ public void addCallGraph(CallGraph callGraph) {
     return reversedGraph;
   }
 
+  /**
+   * Perform a Depth-First Search (DFS) starting from the given node and add
+   * nodes to the stack in post-order.
+   *
+   * @param node     The starting node for DFS.
+   * @param stack    The stack to store nodes in post-order.
+   * @param visited  A set to track visited nodes.
+   */
   private void dfs(CallGraphNode node, Stack<CallGraphNode> stack,
                    Set<CallGraphNode> visited) {
     visited.add(node);
@@ -194,15 +212,21 @@ public void addCallGraph(CallGraph callGraph) {
         dfs(callee, stack, visited);
       }
     }
-    stack.push(node); // Push the node after visiting all its neighbors
+    stack.push(node);
   }
 
+  /**
+   * Perform a Depth-First Search (DFS) starting from the given node to identify
+   * SCCs and assign SCC IDs.
+   *
+   * @param node            The starting node for DFS.
+   * @param currentSccId    The current SCC ID to assign to nodes in the SCC.
+   * @param visited         A set to track visited nodes.
+   */
   private void dfs(CallGraphNode node, int currentSccId,
                    Set<CallGraphNode> visited) {
     visited.add(node);
-    System.err.println("Setting SCC ID of " + node.getMethodName() + " to " +
-                       currentSccId);
-    node.setSccID(currentSccId); // Set the SCC ID for the current node
+    node.setSccID(currentSccId);
     for (CallGraphNode caller : node.getCallers()) {
       if (!visited.contains(caller)) {
         dfs(caller, currentSccId, visited);
