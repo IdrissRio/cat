@@ -207,7 +207,7 @@ public
       (program().attributesOnly
            ? ""
            : hostType().packageName() + "." + hostType().name()) +
-      "::" + fullSignature();
+      "::" + (program().attributesOnly ? name() : fullSignature());
   eq StaticInitializer.targetSignature() =
       hostType().packageName() + "." + hostType().name() + "::clinit<>";
   eq InstanceInitializer.targetSignature() =
@@ -221,7 +221,6 @@ public
       if (i != 0) {
         sb.append(", ");
       }
-      // TODO: TypeDecl.fullName() should not include @primitive.
       TypeDecl paramType = getParameter(i).type();
       if (paramType instanceof PrimitiveType) {
         sb.append(paramType.typeName());
@@ -239,7 +238,7 @@ public
    * @return A set containing all declarations of the invocable entity.
    */
   syn Set<InvocationTarget> Invocable.allDecls() =
-      Collections.singleton(decl());
+      Collections.<InvocationTarget>singleton(decl());
   eq MethodAccess.allDecls() {
     Set<InvocationTarget> decls = new HashSet<>();
     decls.add(decl());

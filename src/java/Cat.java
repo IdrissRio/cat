@@ -136,9 +136,9 @@ public class Cat extends Frontend {
     log("Starting call graph generation");
     CallGraph cg = cat.getEntryPoint().callGraph();
     log("Call graph generation finished");
-    log("Starting SCC computation");
+    log("Starting SCCs computation");
     cg.computeSCCs();
-    log("SCC computation finished");
+    log("SCCs computation finished");
 
     String callgraphJson = cg.toJson();
     if (cat.getSaveCallGraph()) {
