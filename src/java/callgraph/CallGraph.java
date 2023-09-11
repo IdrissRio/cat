@@ -311,14 +311,4 @@ public void addCallGraph(CallGraph callGraph) {
 
     return jsonBuilder.toString();
   }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o instanceof CallGraph) {
-      CallGraph other = (CallGraph)o;
-      return graph.size() == other.graph.size() &&
-          graph.keySet().equals(other.graph.keySet());
-    }
-    return false;
-  }
 }

@@ -31,7 +31,6 @@
 aspect CacheSettings {
   cache MethodDecl.targetSignature();
   cache Invocable.allDecls();
-  cache InvocationTarget.callGraph(InvocationTarget previous, boolean first);
   cache InvocationTarget.shouldBeConsiderAsMethod();
   cache InterfaceDecl.superInterfacesTarget();
   cache ClassDecl.superInterfacesTarget();

@@ -36,7 +36,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 aspect CallGraph {
-
   /**
    * Represents an entity that can be invoked or called.
    */
@@ -70,9 +69,10 @@ public
       to ConstructorDecl.calledMethods();
 
   syn CallGraph Program.callGraph() {
+    CallGraph g = new CallGraph();
     InvocationTarget target = getTarget(entryPointPackage, entryPointMethod);
     InvocationTarget caller = target.shouldBeConsiderAsMethod() ? target : null;
-    CallGraph g = target.callGraph(caller, true);
+    target.callGraphBuilder(g, new HashSet<>(), caller, true);
     return g;
   }
 
@@ -106,31 +106,113 @@ public
   /**
    * Returns the call graph for the current invocation target.
    */
-  syn CallGraph InvocationTarget.callGraph(
-      InvocationTarget previous, boolean first) circular[new CallGraph()] {
-    CallGraph g;
-    if (shouldBeConsiderAsMethod()) {
-      g = new CallGraph(
-          new CallGraphNode(targetSignature(), getKindOfAttribute()));
-    } else {
-      g = new CallGraph();
-    }
-    if (shouldBeConsiderAsMethod() && !first && previous != null) {
+  // syn CallGraph InvocationTarget.callGraph(
+  //     InvocationTarget previous, boolean first) circular[new CallGraph()] {
+  //   CallGraph g;
+  //   if (shouldBeConsiderAsMethod()) {
+  //     g = new CallGraph(
+  //         new CallGraphNode(targetSignature(), getKindOfAttribute()));
+  //   } else {
+  //     g = new CallGraph();
+  //   }
+  //   if (shouldBeConsiderAsMethod() && !first && previous != null) {
+  //     addMethodCallToGraph(g, previous, this);
+  //   }
+
+  //   for (Invocable method : calledMethods()) {
+  //     for (InvocationTarget decl : method.allDecls()) {
+  //       InvocationTarget caller = shouldBeConsiderAsMethod() ? this :
+  //       previous; g.addCallGraph(decl.callGraph(caller, false));
+  //     }
+  //   }
+  //   for (InvocationTarget decl : implicitCalls()) {
+  //     InvocationTarget caller = shouldBeConsiderAsMethod() ? this : previous;
+  //     g.addCallGraph(decl.callGraph(caller, false));
+  //   }
+
+  //   return g;
+  // }
+
+  /**
+   * Returns the call graph for the current invocation target.
+   */
+  // syn CallGraph InvocationTarget.callGraph() {
+  //   CallGraph g = new CallGraph(
+  //       new CallGraphNode(targetSignature(), getKindOfAttribute()));
+  //   Set<InvocationTarget> visited = new HashSet<>();
+  //   callGraphBuilder(g, visited, this, true);
+  //   return g;
+  // }
+
+  /**
+   * Builds a call graph based on invocation targets.
+   *
+   * @param g The call graph to populate.
+   * @param visited Set of visited invocation targets to prevent cycles.
+   * @param previous The previous invocation target in the call chain.
+   * @param first Indicates whether this is the first invocation in the call
+   * chain.
+   */
+public
+  void InvocationTarget.callGraphBuilder(
+      CallGraph g, Set<InvocationTarget> visited, InvocationTarget previous,
+      boolean first) {
+    if (!first && shouldBeConsiderAsMethod() && previous != null) {
       addMethodCallToGraph(g, previous, this);
     }
+    if (!visited.add(this)) {
+      return;
+    }
+    processCalledMethods(g, visited, previous);
+    processImplicitCalls(g, visited, previous);
+  }
 
+  /**
+   * Adds a method call to the call graph.
+   *
+   * @param g The call graph to add the method call to.
+   * @param caller The calling invocation target.
+   * @param callee The called invocation target.
+   */
+public
+  void InvocationTarget.addMethodCallToGraph(
+      CallGraph g, InvocationTarget caller, InvocationTarget callee) {
+    g.addMethodCall(caller.targetSignature(), caller.getKindOfAttribute(),
+                    callee.targetSignature(), callee.getKindOfAttribute());
+  }
+
+  /**
+   * Processes the invocation targets of called methods.
+   *
+   * @param g The call graph to populate.
+   * @param visited Set of visited invocation targets to prevent cycles.
+   * @param previous The previous invocation target in the call chain.
+   */
+public
+  void InvocationTarget.processCalledMethods(
+      CallGraph g, Set<InvocationTarget> visited, InvocationTarget previous) {
     for (Invocable method : calledMethods()) {
       for (InvocationTarget decl : method.allDecls()) {
         InvocationTarget caller = shouldBeConsiderAsMethod() ? this : previous;
-        g.addCallGraph(decl.callGraph(caller, false));
+        decl.callGraphBuilder(g, visited, caller, false);
       }
     }
+  }
+
+  /**
+   * Processes the implicit invocation targets.
+   *
+   * @param g The call graph to populate.
+   * @param visited Set of visited invocation targets to prevent cycles.
+   * @param previous The previous invocation target in the call chain.
+   */
+public
+  void InvocationTarget.processImplicitCalls(
+      CallGraph g, Set<InvocationTarget> visited, InvocationTarget previous) {
     for (InvocationTarget decl : implicitCalls()) {
       InvocationTarget caller = shouldBeConsiderAsMethod() ? this : previous;
-      g.addCallGraph(decl.callGraph(caller, false));
+      decl.callGraphBuilder(g, visited, caller, false);
     }
-
-    return g;
   }
 
 public
@@ -148,20 +230,6 @@ public
       !program().attributesOnly;
   eq MethodDecl.shouldBeConsiderAsMethod() =
       (!program().attributesOnly || isAnAttribute()) && hasBlock();
-
-  /**
-   * Adds a method call to the call graph.
-   *
-   * @param g The call graph to add the method call to.
-   * @param caller The calling invocation target.
-   * @param callee The called invocation target.
-   */
-public
-  void InvocationTarget.addMethodCallToGraph(
-      CallGraph g, InvocationTarget caller, InvocationTarget callee) {
-    g.addMethodCall(caller.targetSignature(), caller.getKindOfAttribute(),
-                    callee.targetSignature(), callee.getKindOfAttribute());
-  }
 
   /**
    * Returns a set of implicit call targets for this invocation target.

@@ -67,6 +67,8 @@ public class CallGraphNode {
    * @param callee The callee to add.
    */
   public void addCallee(CallGraphNode callee) {
+    if (callees.contains(callee))
+      return;
     callees.add(callee);
     callee.addCaller(this);
   }
@@ -93,15 +95,6 @@ public class CallGraphNode {
    * @return The list of callees.
    */
   public List<CallGraphNode> getCallees() { return callees; }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o instanceof CallGraphNode) {
-      CallGraphNode other = (CallGraphNode)o;
-      return methodName.equals(other.methodName);
-    }
-    return false;
-  }
 
   /**
    * Returns a string representation of the CallGraphNode.
