@@ -116,8 +116,6 @@ public
       g = new CallGraph();
     }
     if (shouldBeConsiderAsMethod() && !first && previous != null) {
-      System.out.println("Adding method call: " + previous.targetSignature() +
-                         " -> " + this.targetSignature());
       addMethodCallToGraph(g, previous, this);
     }
 
