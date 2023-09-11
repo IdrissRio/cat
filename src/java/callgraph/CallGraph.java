@@ -249,14 +249,14 @@ public void addCallGraph(CallGraph callGraph) {
     }
 
     StringBuilder jsonBuilder = new StringBuilder();
-    jsonBuilder.append("{");
+    jsonBuilder.append("{\n");
 
     // Add nodes
-    jsonBuilder.append("\"nodes\": [");
+    jsonBuilder.append("  \"nodes\": [\n");
     boolean isFirstNode = true;
     for (CallGraphNode node : graph.values()) {
       if (!isFirstNode) {
-        jsonBuilder.append(", ");
+        jsonBuilder.append(",\n");
       }
 
       String methodName = node.getMethodName();
@@ -264,50 +264,61 @@ public void addCallGraph(CallGraph callGraph) {
       List<String> kindList = node.getKinds();
       boolean isUniqueSCCAndNoSelfLoop = sccIdCounts.get(sccID) == 1;
 
-      jsonBuilder.append("{\"methodName\": \"")
+      jsonBuilder.append("    {\n");
+      jsonBuilder.append("      \"methodName\": \"")
           .append(methodName)
-          .append("\", ");
-      jsonBuilder.append("\"sccId\": ").append(sccID).append(", ");
-      jsonBuilder.append("\"uniqueSCCAndNoSelfLoop\": ")
+          .append("\",\n");
+      jsonBuilder.append("      \"sccId\": ").append(sccID).append(",\n");
+      jsonBuilder.append("      \"uniqueSCCAndNoSelfLoop\": ")
           .append(isUniqueSCCAndNoSelfLoop)
-          .append(", ");
-
-      jsonBuilder.append("\"kind\": [");
+          .append(",\n");
+      jsonBuilder.append("      \"kind\": [\n");
       for (int i = 0; i < kindList.size(); i++) {
-        if (i > 0) {
-          jsonBuilder.append(", ");
+        jsonBuilder.append("        \"").append(kindList.get(i)).append("\"");
+        if (i < kindList.size() - 1) {
+          jsonBuilder.append(",\n");
         }
-        jsonBuilder.append("\"").append(kindList.get(i)).append("\"");
       }
-      jsonBuilder.append("]");
-
-      jsonBuilder.append("}");
+      jsonBuilder.append("\n      ]\n");
+      jsonBuilder.append("    }");
 
       isFirstNode = false;
     }
-    jsonBuilder.append("]");
+    jsonBuilder.append("\n  ],\n");
 
-    // Add edges (assuming your graph is directed)
-    jsonBuilder.append(", \"edges\": [");
+    jsonBuilder.append("  \"edges\": [\n");
     boolean isFirstEdge = true;
     for (CallGraphNode caller : graph.values()) {
       for (CallGraphNode callee : caller.getCallees()) {
         if (!isFirstEdge) {
-          jsonBuilder.append(", ");
+          jsonBuilder.append(",\n");
         }
-        jsonBuilder.append("{\"source\": \"")
+        jsonBuilder.append("    {\n");
+        jsonBuilder.append("      \"source\": \"")
             .append(caller.getMethodName())
-            .append("\", ");
-        jsonBuilder.append("\"target\": \"")
+            .append("\",\n");
+        jsonBuilder.append("      \"target\": \"")
             .append(callee.getMethodName())
-            .append("\"}");
+            .append("\"\n");
+        jsonBuilder.append("    }");
+
         isFirstEdge = false;
       }
     }
-    jsonBuilder.append("]");
+    jsonBuilder.append("\n  ]\n");
 
-    jsonBuilder.append("}");
+    jsonBuilder.append("}\n");
 
     return jsonBuilder.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof CallGraph) {
+      CallGraph other = (CallGraph)o;
+      return graph.size() == other.graph.size() &&
+          graph.keySet().equals(other.graph.keySet());
+    }
+    return false;
   }
 }

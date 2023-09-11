@@ -1,3 +1,5 @@
+// PackageName: org.extendj.callgraph.CHAPaper2
+// MethodName: main
 package org.extendj.callgraph;
 public class CHAPaper2 {
   public void main() {

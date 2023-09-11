@@ -36,7 +36,8 @@ jastadd {
                      "--safeLazy",
                      "--visitCheck=false",
                      "--optimize-imports",
-                     "--tracing=api"]
+                     "--tracing=api"
+                     ]
   astPackage = 'org.extendj.ast'
   parser.name = 'JavaParser'
   scanner.name = 'OriginalScanner'

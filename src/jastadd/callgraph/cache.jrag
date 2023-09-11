@@ -31,13 +31,12 @@
 aspect CacheSettings {
   cache MethodDecl.targetSignature();
   cache Invocable.allDecls();
-  cache InvocationTarget.callGraph();
+  cache InvocationTarget.callGraph(InvocationTarget previous, boolean first);
   cache InvocationTarget.shouldBeConsiderAsMethod();
   cache InterfaceDecl.superInterfacesTarget();
   cache ClassDecl.superInterfacesTarget();
   cache ClassDecl.supertypeTarget();
   cache TypeDecl.getGenericHostDecl();
-  cache Program.callGraph();
   cache Invocable.enclosingTarget();
   cache InvocationTarget.implicitCalls();
   cache InvocationTarget.targetSignature();

@@ -68,7 +68,10 @@ public class Cat extends Frontend {
   public boolean considerOnlyAttributes = false;
   public boolean visualiseCallGraph = false;
   public boolean saveCallGraph = false;
+  public boolean mergeNames = false;
   public String callGraphPath = "";
+  public String entryPointPackage = "";
+  public String entryPointMethod = "";
   public static Object DrAST_root_node;
   ;
 
@@ -90,6 +93,10 @@ public class Cat extends Frontend {
       case "-attributesOnly":
         considerOnlyAttributes = true;
         break;
+      case "-entryPoint":
+        entryPointPackage = args[++i];
+        entryPointMethod = args[++i];
+        break;
       case "-classpath":
         FEOptions.add("-classpath");
         FEOptions.add(args[++i]);
@@ -100,6 +107,9 @@ public class Cat extends Frontend {
       case "-o":
         saveCallGraph = true;
         callGraphPath = args[++i];
+        break;
+      case "-mergeNames":
+        mergeNames = true;
         break;
       default:
         System.err.println("Unrecognized option: " + opt);
@@ -119,6 +129,12 @@ public class Cat extends Frontend {
 
   public String getCallGraphPath() { return callGraphPath; }
 
+  public boolean getMergeNames() { return mergeNames; }
+
+  public String getEntryPointPackage() { return entryPointPackage; }
+
+  public String getEntryPointMethod() { return entryPointMethod; }
+
   /**
    * Entry point for the Java checker.
    * @param args command-line arguments
@@ -128,6 +144,9 @@ public class Cat extends Frontend {
     Cat cat = new Cat();
     String[] jCheckerArgs = cat.setEnv(args);
     cat.getEntryPoint().attributesOnly = cat.getConsiderOnlyAttributes();
+    cat.getEntryPoint().mergeNames = cat.getMergeNames();
+    cat.getEntryPoint().entryPointPackage = cat.getEntryPointPackage();
+    cat.getEntryPoint().entryPointMethod = cat.getEntryPointMethod();
     int exitCode = cat.run(jCheckerArgs);
     DrAST_root_node = cat.getEntryPoint();
     if (exitCode != 0) {

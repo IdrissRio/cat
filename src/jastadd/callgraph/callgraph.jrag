@@ -69,21 +69,28 @@ public
   ConstructorDecl contributes nta getImplicitConstructorInvocation()
       to ConstructorDecl.calledMethods();
 
-  /**
-   * Collects all the call graphs in the program for each InvocationTarget.
-   */
-  coll Set<CallGraph> Program.allCallGraphs()[new HashSet<>()] with add root
-      Program;
-  InvocationTarget contributes callGraph() when shouldBeConsiderAsMethod()
-      to Program.allCallGraphs();
-
-  /**
-   * Returns the call graph for the whole program.
-   */
   syn CallGraph Program.callGraph() {
-    CallGraph g = new CallGraph();
-    g.union(allCallGraphs());
+    InvocationTarget target = getTarget(entryPointPackage, entryPointMethod);
+    InvocationTarget caller = target.shouldBeConsiderAsMethod() ? target : null;
+    CallGraph g = target.callGraph(caller, true);
     return g;
+  }
+
+  syn InvocationTarget Program.getTarget(String pkg, String name) {
+    String packageName =
+        pkg.contains(".") ? pkg.substring(0, pkg.lastIndexOf(".")) : "";
+
+    String className = pkg.substring(pkg.lastIndexOf(".") + 1);
+    TypeDecl td = lookupType(packageName, className);
+    Iterator iter = td.methods().iterator();
+    while (iter.hasNext()) {
+      MethodDecl md = (MethodDecl)iter.next();
+      if (md.name().equals(name)) {
+        return md;
+      }
+    }
+    throw new RuntimeException("CAT: Invocation Target not found. Check the " +
+                               "package and the name of the target.");
   }
 
   /**
@@ -99,44 +106,50 @@ public
   /**
    * Returns the call graph for the current invocation target.
    */
-  syn CallGraph InvocationTarget.callGraph() {
-    CallGraph g = new CallGraph(
-        new CallGraphNode(targetSignature(), getKindOfAttribute()));
-    Set<InvocationTarget> visited = new HashSet<>();
-    callGraphBuilder(g, visited, this, true);
+  syn CallGraph InvocationTarget.callGraph(
+      InvocationTarget previous, boolean first) circular[new CallGraph()] {
+    CallGraph g;
+    if (shouldBeConsiderAsMethod()) {
+      g = new CallGraph(
+          new CallGraphNode(targetSignature(), getKindOfAttribute()));
+    } else {
+      g = new CallGraph();
+    }
+    if (shouldBeConsiderAsMethod() && !first && previous != null) {
+      System.out.println("Adding method call: " + previous.targetSignature() +
+                         " -> " + this.targetSignature());
+      addMethodCallToGraph(g, previous, this);
+    }
+
+    for (Invocable method : calledMethods()) {
+      for (InvocationTarget decl : method.allDecls()) {
+        InvocationTarget caller = shouldBeConsiderAsMethod() ? this : previous;
+        g.addCallGraph(decl.callGraph(caller, false));
+      }
+    }
+    for (InvocationTarget decl : implicitCalls()) {
+      InvocationTarget caller = shouldBeConsiderAsMethod() ? this : previous;
+      g.addCallGraph(decl.callGraph(caller, false));
+    }
+
     return g;
   }
 
 public
   boolean Program.attributesOnly = false;
 
+public
+  String Program.entryPointPackage = "";
+public
+  String Program.entryPointMethod = "";
+
+public
+  boolean Program.mergeNames = false;
+
   syn boolean InvocationTarget.shouldBeConsiderAsMethod() =
       !program().attributesOnly;
   eq MethodDecl.shouldBeConsiderAsMethod() =
       (!program().attributesOnly || isAnAttribute()) && hasBlock();
-
-  /**
-   * Builds a call graph based on invocation targets.
-   *
-   * @param g The call graph to populate.
-   * @param visited Set of visited invocation targets to prevent cycles.
-   * @param previous The previous invocation target in the call chain.
-   * @param first Indicates whether this is the first invocation in the call
-   * chain.
-   */
-public
-  void InvocationTarget.callGraphBuilder(
-      CallGraph g, Set<InvocationTarget> visited, InvocationTarget previous,
-      boolean first) {
-    if (!first && shouldBeConsiderAsMethod()) {
-      addMethodCallToGraph(g, previous, this);
-    }
-    if (!visited.add(this)) {
-      return;
-    }
-    processCalledMethods(g, visited, previous);
-    processImplicitCalls(g, visited, previous);
-  }
 
   /**
    * Adds a method call to the call graph.
@@ -150,40 +163,6 @@ public
       CallGraph g, InvocationTarget caller, InvocationTarget callee) {
     g.addMethodCall(caller.targetSignature(), caller.getKindOfAttribute(),
                     callee.targetSignature(), callee.getKindOfAttribute());
-  }
-
-  /**
-   * Processes the invocation targets of called methods.
-   *
-   * @param g The call graph to populate.
-   * @param visited Set of visited invocation targets to prevent cycles.
-   * @param previous The previous invocation target in the call chain.
-   */
-public
-  void InvocationTarget.processCalledMethods(
-      CallGraph g, Set<InvocationTarget> visited, InvocationTarget previous) {
-    for (Invocable method : calledMethods()) {
-      for (InvocationTarget decl : method.allDecls()) {
-        InvocationTarget caller = shouldBeConsiderAsMethod() ? this : previous;
-        decl.callGraphBuilder(g, visited, caller, false);
-      }
-    }
-  }
-
-  /**
-   * Processes the implicit invocation targets.
-   *
-   * @param g The call graph to populate.
-   * @param visited Set of visited invocation targets to prevent cycles.
-   * @param previous The previous invocation target in the call chain.
-   */
-public
-  void InvocationTarget.processImplicitCalls(
-      CallGraph g, Set<InvocationTarget> visited, InvocationTarget previous) {
-    for (InvocationTarget decl : implicitCalls()) {
-      InvocationTarget caller = shouldBeConsiderAsMethod() ? this : previous;
-      decl.callGraphBuilder(g, visited, caller, false);
-    }
   }
 
   /**
@@ -204,10 +183,10 @@ public
    * @return The signature of the invocation target.
    */
   syn String InvocationTarget.targetSignature() =
-      (program().attributesOnly
+      (program().mergeNames
            ? ""
            : hostType().packageName() + "." + hostType().name()) +
-      "::" + (program().attributesOnly ? name() : fullSignature());
+      "::" + (program().mergeNames ? name() : fullSignature());
   eq StaticInitializer.targetSignature() =
       hostType().packageName() + "." + hostType().name() + "::clinit<>";
   eq InstanceInitializer.targetSignature() =

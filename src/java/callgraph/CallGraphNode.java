@@ -94,6 +94,15 @@ public class CallGraphNode {
    */
   public List<CallGraphNode> getCallees() { return callees; }
 
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof CallGraphNode) {
+      CallGraphNode other = (CallGraphNode)o;
+      return methodName.equals(other.methodName);
+    }
+    return false;
+  }
+
   /**
    * Returns a string representation of the CallGraphNode.
    * It includes the method name and the names of its callees.

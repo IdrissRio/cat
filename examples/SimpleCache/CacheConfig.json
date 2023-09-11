@@ -1,70 +1,71 @@
 {
-	"nodes": [
-		{
-			"methodName": "Root::C1",
-			"sccId": 2,
-			"uniqueSCCAndNoSelfLoop": false,
-			"kind": [
-				"syn"
-			]
-		},
-		{
-			"methodName": "Root::C2",
-			"sccId": 2,
-			"uniqueSCCAndNoSelfLoop": false,
-			"kind": [
-				"syn"
-			]
-		},
-		{
-			"methodName": "Root::N",
-			"sccId": 1,
-			"uniqueSCCAndNoSelfLoop": true,
-			"kind": [
-				"syn"
-			]
-		},
-		{
-			"methodName": "Root::C3",
-			"sccId": 0,
-			"uniqueSCCAndNoSelfLoop": false,
-			"kind": [
-				"syn"
-			]
-		},
-		{
-			"methodName": "Root::C4",
-			"sccId": 0,
-			"uniqueSCCAndNoSelfLoop": false,
-			"kind": [
-				"syn"
-			]
-		}
-	],
-	"edges": [
-		{
-			"source": "Root::C1",
-			"target": "Root::C2"
-		},
-		{
-			"source": "Root::C2",
-			"target": "Root::N"
-		},
-		{
-			"source": "Root::C2",
-			"target": "Root::C1"
-		},
-		{
-			"source": "Root::N",
-			"target": "Root::C3"
-		},
-		{
-			"source": "Root::C3",
-			"target": "Root::C4"
-		},
-		{
-			"source": "Root::C4",
-			"target": "Root::C3"
-		}
+"nodes": [
+	{
+	"methodName": "ast.Root::C1()",
+	"sccId": 0,
+	"uniqueSCCAndNoSelfLoop": false,
+	"kind": [
+		"syn"
+	]
+},
+{
+	"methodName": "ast.Root::C2()",
+	"sccId": 0,
+	"uniqueSCCAndNoSelfLoop": false,
+	"kind": [
+		"syn"
+	]
+},
+{
+	"methodName": "ast.Root::N()",
+	"sccId": 1,
+	"uniqueSCCAndNoSelfLoop": true,
+	"kind": [
+		"syn"
+	]
+},
+{
+	"methodName": "ast.Root::C3()",
+	"sccId": 2,
+	"uniqueSCCAndNoSelfLoop": false,
+	"kind": [
+		"syn"
+	]
+},
+{
+	"methodName": "ast.Root::C4()",
+	"sccId": 2,
+	"uniqueSCCAndNoSelfLoop": false,
+	"kind": [
+		"syn"
 	]
 }
+],
+"edges": [
+{
+	"source": "ast.Root::C1()",
+	"target": "ast.Root::C2()"
+},
+{
+	"source": "ast.Root::C2()",
+	"target": "ast.Root::N()"
+},
+{
+	"source": "ast.Root::C2()",
+	"target": "ast.Root::C1()"
+},
+{
+	"source": "ast.Root::N()",
+	"target": "ast.Root::C3()"
+},
+{
+	"source": "ast.Root::C3()",
+	"target": "ast.Root::C4()"
+},
+{
+	"source": "ast.Root::C4()",
+	"target": "ast.Root::C3()"
+}
+]
+}
+
