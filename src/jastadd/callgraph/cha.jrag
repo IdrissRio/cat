@@ -127,8 +127,16 @@ aspect CHA {
   syn Set<TypeDecl> TypeDecl.subtypesIncludingSelf() {
     Set<TypeDecl> subtypes = new HashSet<>(subtypes());
     subtypes.add(this);
+    if (program().rta) {
+      subtypes = subtypes.stream()
+                     .filter(t->program().instanciatedTypes().contains(t))
+                     .collect(Collectors.toSet());
+    }
     return subtypes;
   }
+
+public
+  boolean Program.rta = false;
 
   syn Set<TypeDecl> InterfaceDecl.subtypesIncludingSelf() {
     Set<TypeDecl> subtypes = new HashSet<>(subtypes());
@@ -140,4 +148,8 @@ aspect CHA {
       Program;
   ClassDecl contributes this to Program.uniqueTypes();
   InterfaceDecl contributes this to Program.uniqueTypes();
+
+  coll Set<TypeDecl> Program.instanciatedTypes()[new LinkedHashSet<>()] with add
+      root Program;
+  ClassInstanceExpr contributes type() to Program.instanciatedTypes();
 }

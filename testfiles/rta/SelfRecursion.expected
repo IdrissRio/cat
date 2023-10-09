@@ -1,0 +1,2 @@
+org.extendj.callgraph.SelfRecursion::foo() -> org.extendj.callgraph.SelfRecursion::foo()
+

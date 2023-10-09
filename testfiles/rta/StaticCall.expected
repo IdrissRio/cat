@@ -1,0 +1,3 @@
+org.extendj.callgraph.Test2::foo() -> org.extendj.callgraph.Test::foo()
+org.extendj.callgraph.Test::foo()
+

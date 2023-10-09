@@ -1,0 +1,11 @@
+java.lang.Object::<init>()
+org.extendj.callgraph.A::A() -> java.lang.Object::<init>()
+org.extendj.callgraph.A::m()
+org.extendj.callgraph.C::C() -> org.extendj.callgraph.A::A(), org.extendj.callgraph.C::clinit<>
+org.extendj.callgraph.C::clinit<> -> org.extendj.callgraph.G::G()
+org.extendj.callgraph.C::m()
+org.extendj.callgraph.CHAPaper1::main() -> org.extendj.callgraph.A::m(), org.extendj.callgraph.C::C(), org.extendj.callgraph.C::m(), org.extendj.callgraph.H::H()
+org.extendj.callgraph.F::F() -> org.extendj.callgraph.C::C()
+org.extendj.callgraph.G::G() -> org.extendj.callgraph.F::F()
+org.extendj.callgraph.H::H() -> org.extendj.callgraph.F::F()
+

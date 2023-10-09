@@ -69,6 +69,7 @@ public class Cat extends Frontend {
   public boolean visualiseCallGraph = false;
   public boolean saveCallGraph = false;
   public boolean mergeNames = false;
+  public boolean rta = false;
   public String callGraphPath = "";
   public String entryPointPackage = "";
   public String entryPointMethod = "";
@@ -107,6 +108,9 @@ public class Cat extends Frontend {
       case "-o":
         saveCallGraph = true;
         callGraphPath = args[++i];
+        break;
+      case "-rta":
+        rta = true;
         break;
       case "-mergeNames":
         mergeNames = true;
@@ -147,6 +151,7 @@ public class Cat extends Frontend {
     cat.getEntryPoint().mergeNames = cat.getMergeNames();
     cat.getEntryPoint().entryPointPackage = cat.getEntryPointPackage();
     cat.getEntryPoint().entryPointMethod = cat.getEntryPointMethod();
+    cat.getEntryPoint().rta = cat.rta;
     int exitCode = cat.run(jCheckerArgs);
     DrAST_root_node = cat.getEntryPoint();
     if (exitCode != 0) {
