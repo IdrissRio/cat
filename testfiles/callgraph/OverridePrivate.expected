@@ -1,0 +1,6 @@
+java.lang.Object::<init>()
+org.extendj.callgraph.OverridePrivate::main(String[]) -> org.extendj.callgraph.Root::Root(), org.extendj.callgraph.Root::a2()
+org.extendj.callgraph.Root::Root() -> java.lang.Object::<init>()
+org.extendj.callgraph.Root::a1() -> org.extendj.callgraph.Root::a2()
+org.extendj.callgraph.Root::a2() -> org.extendj.callgraph.Root::a1()
+
