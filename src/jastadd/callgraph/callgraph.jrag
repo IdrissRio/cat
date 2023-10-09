@@ -36,6 +36,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 aspect CallGraph {
+
   /**
    * Represents an entity that can be invoked or called.
    */
@@ -102,47 +103,6 @@ public
   inh InvocationTarget Invocable.enclosingTarget();
   eq InvocationTarget.getChild().enclosingTarget() = this;
   eq Program.getChild().enclosingTarget() = null;
-
-  /**
-   * Returns the call graph for the current invocation target.
-   */
-  // syn CallGraph InvocationTarget.callGraph(
-  //     InvocationTarget previous, boolean first) circular[new CallGraph()] {
-  //   CallGraph g;
-  //   if (shouldBeConsiderAsMethod()) {
-  //     g = new CallGraph(
-  //         new CallGraphNode(targetSignature(), getKindOfAttribute()));
-  //   } else {
-  //     g = new CallGraph();
-  //   }
-  //   if (shouldBeConsiderAsMethod() && !first && previous != null) {
-  //     addMethodCallToGraph(g, previous, this);
-  //   }
-
-  //   for (Invocable method : calledMethods()) {
-  //     for (InvocationTarget decl : method.allDecls()) {
-  //       InvocationTarget caller = shouldBeConsiderAsMethod() ? this :
-  //       previous; g.addCallGraph(decl.callGraph(caller, false));
-  //     }
-  //   }
-  //   for (InvocationTarget decl : implicitCalls()) {
-  //     InvocationTarget caller = shouldBeConsiderAsMethod() ? this : previous;
-  //     g.addCallGraph(decl.callGraph(caller, false));
-  //   }
-
-  //   return g;
-  // }
-
-  /**
-   * Returns the call graph for the current invocation target.
-   */
-  // syn CallGraph InvocationTarget.callGraph() {
-  //   CallGraph g = new CallGraph(
-  //       new CallGraphNode(targetSignature(), getKindOfAttribute()));
-  //   Set<InvocationTarget> visited = new HashSet<>();
-  //   callGraphBuilder(g, visited, this, true);
-  //   return g;
-  // }
 
   /**
    * Builds a call graph based on invocation targets.
@@ -287,6 +247,9 @@ public
   eq MethodAccess.allDecls() {
     Set<InvocationTarget> decls = new HashSet<>();
     decls.add(decl());
+    if (decl().isPrivate()) {
+      return decls;
+    }
     MethodDecl targetDecl = decl();
     TypeDecl host = targetDecl.hostType().getGenericHostDecl();
     for (TypeDecl t : host.subtypes()) {
