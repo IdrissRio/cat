@@ -37,6 +37,7 @@ jastadd {
                      "--visitCheck=false",
                      "--optimize-imports",
                      "--tracing=api"
+                    //  ,"--dnc=CacheConfiguration.json"
                      ]
   astPackage = 'org.extendj.ast'
   parser.name = 'JavaParser'

@@ -34,6 +34,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.extendj.ast.InvocationTarget;
 
 /**
  * Represents a node in the call graph.
@@ -44,22 +45,24 @@ public class CallGraphNode {
   private List<CallGraphNode> callers;
   private List<String> kinds = new ArrayList<>();
   private int sccID;
-
+  private InvocationTarget target;
   /**
    * Creates a new CallGraphNode with the given method name.
    *
    * @param methodName The name of the method represented by this node.
    */
-  public CallGraphNode(String methodName, List<String> kinds) {
+  public CallGraphNode(String methodName, List<String> kinds,
+                       InvocationTarget target) {
     this.methodName = methodName;
     this.callees = new ArrayList<>();
     this.callers = new ArrayList<>();
     this.kinds = kinds;
     this.sccID = 0;
+    this.target = target;
   }
-  
 
   public List<String> getKinds() { return kinds; }
+  public boolean isBridge() { return false; }
 
   /**
    * Adds a callee to the current node's list of callees.
@@ -74,6 +77,15 @@ public class CallGraphNode {
   }
 
   public void addCaller(CallGraphNode caller) { callers.add(caller); }
+
+  public void removeCallee(CallGraphNode callee) {
+    callees.remove(callee);
+    callee.removeCaller(this);
+  }
+
+  public InvocationTarget getTarget() { return target; }
+
+  public void removeCaller(CallGraphNode caller) { callers.remove(caller); }
 
   /**
    * Gets the list of callers for the current node.

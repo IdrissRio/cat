@@ -299,6 +299,14 @@
 					<span class="statistic-label">Number of "collection" Nodes:</span>
 					<span id="kindCollectionNodeCount">0</span>
 				</div>
+				<div class="statistic">
+					<span class="statistic-label">Number of "bridge" Nodes:</span>
+					<span id="kindBridgeNodeCount">0</span>
+				</div>
+				<div class="statistic">
+					<span class="statistic-label">Number of "method" Nodes:</span>
+					<span id="kindMethodNodeCount">0</span>
+				</div>
 			</div>
 			<div class="input-section">
 				<h2>Upload JSON File</h2>
@@ -369,8 +377,16 @@
 						"border-width": "2px",
 						"border-style": "solid"
 					}
-				}
-				,
+				}, {
+					selector: ".bridge",
+					style: {
+						"background-color": "rgb(222, 2, 196)",
+						"color": "white",
+						"border-color": "rgb(222, 2, 196)",
+						"border-width": "2px",
+						"border-style": "solid"
+					}
+				},
 				{
 					selector: "edge",
 					style: {
@@ -507,7 +523,9 @@
 					"syn": 0,
 					"inh": 0,
 					"circular": 0,
-					"collection": 0
+					"collection": 0,
+					"method": 0,
+					"bridge": 0
 				};
 
 				callgraphData.nodes.forEach(node => {
@@ -522,6 +540,8 @@
 				document.getElementById("kindInhNodeCount").textContent = kindCounts["inh"];
 				document.getElementById("kindCircularNodeCount").textContent = kindCounts["circular"];
 				document.getElementById("kindCollectionNodeCount").textContent = kindCounts["collection"];
+				document.getElementById("kindBridgeNodeCount").textContent = kindCounts["bridge"];
+				document.getElementById("kindMethodNodeCount").textContent = kindCounts["method"];
 
 
 			})
@@ -843,6 +863,7 @@
 			{ type: "collection", label: "Collection", borderColor: "red" },
 			{ type: "method", label: "Method", color: "rgb(255,255,255)" },
 			{ type: "circular", label: "Circular", color: "rgb(178, 6, 0)", borderColor: "rgb(178, 6, 0)" },
+			{ type: "bridge", label: "Bridge", color: "rgb(222, 2, 196)", borderColor: "rgb(222, 2, 196)" }
 		];
 
 		// Add the legend elements to the "legend" container

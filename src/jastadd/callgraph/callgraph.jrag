@@ -104,6 +104,19 @@ public
   eq InvocationTarget.getChild().enclosingTarget() = this;
   eq Program.getChild().enclosingTarget() = null;
 
+  syn String InvocationTarget.returnType() = "";
+  eq MethodDecl.returnType() = type().name();
+
+  syn Map<String, String> InvocationTarget.paramTypes() = new HashMap<>();
+  eq MethodDecl.paramTypes() {
+    Map<String, String> paramTypes = new HashMap<>();
+    for (int i = 0; i < getNumParameter(); i++) {
+      TypeDecl paramType = getParameter(i).type();
+      paramTypes.put(paramType.name(), paramType.name());
+    }
+    return paramTypes;
+  }
+
   /**
    * Builds a call graph based on invocation targets.
    *
@@ -138,7 +151,8 @@ public
   void InvocationTarget.addMethodCallToGraph(
       CallGraph g, InvocationTarget caller, InvocationTarget callee) {
     g.addMethodCall(caller.targetSignature(), caller.getKindOfAttribute(),
-                    callee.targetSignature(), callee.getKindOfAttribute());
+                    callee.targetSignature(), callee.getKindOfAttribute(),
+                    caller);
   }
 
   /**
@@ -325,15 +339,20 @@ public
 
 aspect AttributeKind {
 
-  syn String Annotation.getKind() {
+  syn String Annotation.getKind(int i) {
     try {
-      ElementValuePair pair = getElementValuePair(0);
+      ElementValuePair pair = getElementValuePair(i);
       ElementConstantValue ecv = (ElementConstantValue)pair.getElementValue();
       Expr e = ecv.getExpr();
       Dot d = (Dot)e;
       VarAccess va = (VarAccess)d.lastAccess();
       return va.getID();
     } catch (Throwable ignored) {
+      try {
+        ElementValuePair pair = getElementValuePair(i);
+        return pair.getName();
+      } catch (Throwable t) {
+      }
       // it's not an attribute
     }
     return "";
@@ -344,16 +363,16 @@ aspect AttributeKind {
                                   isInhAttribute() || isCircularAttribute();
 
   syn boolean Modifier.isCollectionAttribute() = false;
-  eq Annotation.isCollectionAttribute() = getKind().equals("COLL");
+  eq Annotation.isCollectionAttribute() = getKind(0).equals("COLL");
 
   syn boolean Modifier.isSynAttribute() = false;
-  eq Annotation.isSynAttribute() = getKind().equals("SYN");
+  eq Annotation.isSynAttribute() = getKind(0).equals("SYN");
 
   syn boolean Modifier.isInhAttribute() = false;
-  eq Annotation.isInhAttribute() = getKind().equals("INH");
+  eq Annotation.isInhAttribute() = getKind(0).equals("INH");
 
   syn boolean Modifier.isCircularAttribute() = false;
-  eq Annotation.isCircularAttribute() = getKind().equals("isCircular");
+  eq Annotation.isCircularAttribute() = getKind(1).equals("isCircular");
 
 public
   boolean InvocationTarget.hasAttributeInModifiers(

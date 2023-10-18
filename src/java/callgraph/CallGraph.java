@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import org.extendj.ast.InvocationTarget;
+import org.extendj.callgraph.BridgeNode;
 import org.extendj.callgraph.CallGraphNode;
 
 /**
@@ -46,7 +48,7 @@ import org.extendj.callgraph.CallGraphNode;
 public class CallGraph {
   private Map<String, CallGraphNode> graph;
   private CallGraphNode entryPoint;
-  private int sccCounter = 0;
+  private int currentSccId = 0;
 
   /**
    * Creates a new CallGraph.
@@ -79,19 +81,22 @@ public class CallGraph {
    * @param callerName The name of the calling method.
    * @param calleeName The name of the called method.
    */
-public void addMethodCall(String callerName, List<String> callerKinds, String calleeName, List<String> calleeKinds) {
-    CallGraphNode caller = getOrCreateNode(callerName, callerKinds);
-    CallGraphNode callee = getOrCreateNode(calleeName, calleeKinds);
+  public void addMethodCall(String callerName, List<String> callerKinds,
+                            String calleeName, List<String> calleeKinds,
+                            InvocationTarget target) {
+    CallGraphNode caller = getOrCreateNode(callerName, callerKinds, target);
+    CallGraphNode callee = getOrCreateNode(calleeName, calleeKinds, target);
     caller.addCallee(callee);
-}
+  }
 
-private CallGraphNode getOrCreateNode(String methodName, List<String> kinds) {
+  private CallGraphNode getOrCreateNode(String methodName, List<String> kinds,
+                                        InvocationTarget target) {
     if (!graph.containsKey(methodName)) {
       graph.put(methodName,
-                new CallGraphNode(methodName, new ArrayList<>(kinds)));
+                new CallGraphNode(methodName, new ArrayList<>(kinds), target));
     }
     return graph.get(methodName);
-}
+  }
 
   /**
    * Returns a string representation of the entire CallGraph.
@@ -131,13 +136,15 @@ public void addCallGraph(CallGraph callGraph) {
     for (CallGraphNode node : callGraph.graph.values()) {
       String methodName = node.getMethodName();
       if (!graph.containsKey(methodName)) {
-        graph.put(methodName, new CallGraphNode(methodName, node.getKinds()));
+        graph.put(methodName, new CallGraphNode(methodName, node.getKinds(),
+                                                node.getTarget()));
       }
       List<CallGraphNode> callees = node.getCallees();
       for (CallGraphNode callee : callees) {
         String calleeName = callee.getMethodName();
         if (!graph.containsKey(calleeName)) {
-          graph.put(calleeName, new CallGraphNode(calleeName, callee.getKinds()));
+          graph.put(calleeName, new CallGraphNode(calleeName, callee.getKinds(),
+                                                  callee.getTarget()));
         }
         String edgeKey = methodName + " -> " + calleeName;
         if (!addedEdges.contains(edgeKey)) {
@@ -154,9 +161,9 @@ public void addCallGraph(CallGraph callGraph) {
    * this method.
    */
   public void computeSCCs() {
+
     Stack<CallGraphNode> stack = new Stack<>();
     Set<CallGraphNode> visited = new HashSet<>();
-    int currentSccId = 0;
 
     // Step 1: Perform DFS on the original graph and fill the stack
     for (CallGraphNode node : graph.values()) {
@@ -190,7 +197,8 @@ public void addCallGraph(CallGraph callGraph) {
     for (CallGraphNode node : graph.values()) {
       for (CallGraphNode callee : node.getCallees()) {
         reversedGraph.addMethodCall(callee.getMethodName(), callee.getKinds(),
-                                    node.getMethodName(), node.getKinds());
+                                    node.getMethodName(), node.getKinds(),
+                                    callee.getTarget());
       }
     }
     return reversedGraph;
@@ -234,6 +242,47 @@ public void addCallGraph(CallGraph callGraph) {
     }
   }
 
+  private void addBridges() {
+    Map<Integer, Integer> sccIdCounts = new HashMap<>();
+
+    for (CallGraphNode node : graph.values()) {
+      Integer sccID = node.getSccID();
+      sccIdCounts.put(sccID, sccIdCounts.getOrDefault(sccID, 0) + 1);
+    }
+
+    List<CallGraphNode> nodes = new ArrayList<>(graph.values());
+    for (CallGraphNode node : nodes) {
+      Integer nodeSccID = node.getSccID();
+      List<CallGraphNode> callees = new ArrayList<>(node.getCallees());
+      if (sccIdCounts.get(nodeSccID) >= 2) {
+        for (CallGraphNode callee : callees) {
+          Integer calleeSccID = callee.getSccID();
+
+          if (calleeSccID != nodeSccID && sccIdCounts.get(calleeSccID) >= 2 &&
+              callee.getKinds().contains("syn")) {
+            node.removeCallee(callee);
+            String bridgeNodeName = "Bridge_" + callee.getMethodName();
+            CallGraphNode bridgeNode = graph.get(bridgeNodeName);
+            if (bridgeNode == null) {
+              // Bridge
+              bridgeNode = new BridgeNode(bridgeNodeName,
+                                          new ArrayList<String>() {
+                                            { add("bridge"); }
+                                          },
+                                          callee.getTarget().returnType(),
+                                          callee.getTarget().paramTypes(),
+                                          callee.getMethodName(), "");
+              bridgeNode.setSccID(callee.getSccID());
+              graph.put(bridgeNodeName, bridgeNode);
+            }
+            bridgeNode.addCallee(callee);
+            node.addCallee(bridgeNode);
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Convert the CallGraph to a JSON string.
    *
@@ -247,6 +296,7 @@ public void addCallGraph(CallGraph callGraph) {
       Integer sccID = node.getSccID();
       sccIdCounts.put(sccID, sccIdCounts.getOrDefault(sccID, 0) + 1);
     }
+    addBridges();
 
     StringBuilder jsonBuilder = new StringBuilder();
     jsonBuilder.append("{\n");
@@ -262,7 +312,9 @@ public void addCallGraph(CallGraph callGraph) {
       String methodName = node.getMethodName();
       Integer sccID = node.getSccID();
       List<String> kindList = node.getKinds();
-      boolean isUniqueSCCAndNoSelfLoop = sccIdCounts.get(sccID) == 1;
+      boolean isUniqueSCCAndNoSelfLoop = (sccIdCounts.get(sccID) == null)
+                                             ? false
+                                             : sccIdCounts.get(sccID) == 1;
 
       jsonBuilder.append("    {\n");
       jsonBuilder.append("      \"methodName\": \"")
@@ -272,6 +324,36 @@ public void addCallGraph(CallGraph callGraph) {
       jsonBuilder.append("      \"uniqueSCCAndNoSelfLoop\": ")
           .append(isUniqueSCCAndNoSelfLoop)
           .append(",\n");
+      jsonBuilder.append("      \"bridge\": ")
+          .append(node.isBridge())
+          .append(",\n");
+      if (node instanceof BridgeNode) {
+        BridgeNode bridgeNode = (BridgeNode)node;
+        jsonBuilder.append("      \"returnType\": \"")
+            .append(bridgeNode.returnType())
+            .append("\",\n");
+        jsonBuilder.append("      \"paramTypes\": {\n");
+        boolean isFirstParam = true;
+        for (Map.Entry<String, String> entry :
+             bridgeNode.paramTypes().entrySet()) {
+          if (!isFirstParam) {
+            jsonBuilder.append(",\n");
+          }
+          jsonBuilder.append("        \"")
+              .append(entry.getKey())
+              .append("\": \"")
+              .append(entry.getValue())
+              .append("\"");
+          isFirstParam = false;
+        }
+        jsonBuilder.append("\n      },\n");
+        jsonBuilder.append("      \"originalName\": \"")
+            .append(bridgeNode.originalName())
+            .append("\",\n");
+        jsonBuilder.append("      \"prettyPrinted\": \"")
+            .append(bridgeNode.prettyPrinted())
+            .append("\",\n");
+      }
       jsonBuilder.append("      \"kind\": [\n");
       for (int i = 0; i < kindList.size(); i++) {
         jsonBuilder.append("        \"").append(kindList.get(i)).append("\"");
