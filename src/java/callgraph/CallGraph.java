@@ -83,9 +83,10 @@ public class CallGraph {
    */
   public void addMethodCall(String callerName, List<String> callerKinds,
                             String calleeName, List<String> calleeKinds,
-                            InvocationTarget target) {
-    CallGraphNode caller = getOrCreateNode(callerName, callerKinds, target);
-    CallGraphNode callee = getOrCreateNode(calleeName, calleeKinds, target);
+                            InvocationTarget target1,
+                            InvocationTarget target2) {
+    CallGraphNode caller = getOrCreateNode(callerName, callerKinds, target1);
+    CallGraphNode callee = getOrCreateNode(calleeName, calleeKinds, target2);
     caller.addCallee(callee);
   }
 
@@ -198,7 +199,7 @@ public void addCallGraph(CallGraph callGraph) {
       for (CallGraphNode callee : node.getCallees()) {
         reversedGraph.addMethodCall(callee.getMethodName(), callee.getKinds(),
                                     node.getMethodName(), node.getKinds(),
-                                    callee.getTarget());
+                                    node.getTarget(), callee.getTarget());
       }
     }
     return reversedGraph;
@@ -254,32 +255,36 @@ public void addCallGraph(CallGraph callGraph) {
     for (CallGraphNode node : nodes) {
       Integer nodeSccID = node.getSccID();
       List<CallGraphNode> callees = new ArrayList<>(node.getCallees());
-      if (sccIdCounts.get(nodeSccID) >= 2) {
-        for (CallGraphNode callee : callees) {
-          Integer calleeSccID = callee.getSccID();
+      // if (sccIdCounts.get(nodeSccID) >= 2) {
+      for (CallGraphNode callee : callees) {
+        Integer calleeSccID = callee.getSccID();
 
-          if (calleeSccID != nodeSccID && sccIdCounts.get(calleeSccID) >= 2 &&
-              callee.getKinds().contains("syn")) {
-            node.removeCallee(callee);
-            String bridgeNodeName = "Bridge_" + callee.getMethodName();
-            CallGraphNode bridgeNode = graph.get(bridgeNodeName);
-            if (bridgeNode == null) {
-              // Bridge
-              bridgeNode = new BridgeNode(bridgeNodeName,
-                                          new ArrayList<String>() {
-                                            { add("bridge"); }
-                                          },
-                                          callee.getTarget().returnType(),
-                                          callee.getTarget().paramTypes(),
-                                          callee.getMethodName(), "");
-              bridgeNode.setSccID(callee.getSccID());
-              graph.put(bridgeNodeName, bridgeNode);
-            }
-            bridgeNode.addCallee(callee);
-            node.addCallee(bridgeNode);
+        if (calleeSccID != nodeSccID && sccIdCounts.get(calleeSccID) >= 2 &&
+            callee.getKinds().contains("syn")) {
+          node.removeCallee(callee);
+          String bridgeNodeName = "Bridge_" + callee.getMethodName();
+          CallGraphNode bridgeNode = graph.get(bridgeNodeName);
+          if (bridgeNode == null) {
+            // Bridge
+            bridgeNode =
+                new BridgeNode(bridgeNodeName,
+                               new ArrayList<String>() {
+                                 { add("bridge"); }
+                               },
+                               callee.getTarget().returnType(),
+                               callee.getTarget().paramTypes(),
+                               callee.getMethodName(), "", callee.getTarget());
+            System.err.println(callee.getMethodName() + "  ---  " +
+                               callee.getTarget().targetSignature());
+
+            bridgeNode.setSccID(callee.getSccID());
+            graph.put(bridgeNodeName, bridgeNode);
           }
+          bridgeNode.addCallee(callee);
+          node.addCallee(bridgeNode);
         }
-      }
+        }
+        // }
     }
   }
 
@@ -327,33 +332,34 @@ public void addCallGraph(CallGraph callGraph) {
       jsonBuilder.append("      \"bridge\": ")
           .append(node.isBridge())
           .append(",\n");
-      if (node instanceof BridgeNode) {
+      jsonBuilder.append("      \"paramTypes\": {\n");
+      boolean isFirstParam = true;
+      for (Map.Entry<String, String> entry :
+           node.getTarget().paramTypes().entrySet()) {
+        if (!isFirstParam) {
+            jsonBuilder.append(",\n");
+        }
+        jsonBuilder.append("        \"")
+            .append(entry.getKey())
+            .append("\": \"")
+            .append(entry.getValue())
+            .append("\"");
+        isFirstParam = false;
+      }
+        jsonBuilder.append("\n      },\n");
+        if (node instanceof BridgeNode) {
         BridgeNode bridgeNode = (BridgeNode)node;
         jsonBuilder.append("      \"returnType\": \"")
             .append(bridgeNode.returnType())
             .append("\",\n");
-        jsonBuilder.append("      \"paramTypes\": {\n");
-        boolean isFirstParam = true;
-        for (Map.Entry<String, String> entry :
-             bridgeNode.paramTypes().entrySet()) {
-          if (!isFirstParam) {
-            jsonBuilder.append(",\n");
-          }
-          jsonBuilder.append("        \"")
-              .append(entry.getKey())
-              .append("\": \"")
-              .append(entry.getValue())
-              .append("\"");
-          isFirstParam = false;
-        }
-        jsonBuilder.append("\n      },\n");
+
         jsonBuilder.append("      \"originalName\": \"")
             .append(bridgeNode.originalName())
             .append("\",\n");
         jsonBuilder.append("      \"prettyPrinted\": \"")
             .append(bridgeNode.prettyPrinted())
             .append("\",\n");
-      }
+        }
       jsonBuilder.append("      \"kind\": [\n");
       for (int i = 0; i < kindList.size(); i++) {
         jsonBuilder.append("        \"").append(kindList.get(i)).append("\"");

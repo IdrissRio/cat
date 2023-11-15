@@ -34,6 +34,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.extendj.ast.InvocationTarget;
 
 /**
  * Represents a Bridge node between two SCC in the call graph.
@@ -46,12 +47,13 @@ public class BridgeNode extends CallGraphNode {
 
   public BridgeNode(String methodName, List<String> kinds, String returnType,
                     Map<String, String> paramTypes, String originalName,
-                    String prettyPrinted) {
-    super(methodName, kinds, null);
+                    String prettyPrinted, InvocationTarget target) {
+    super(methodName, kinds, target);
     this.returnType = returnType;
-    this.paramTypes = paramTypes;
+    this.paramTypes = target.paramTypes();
     this.originalName = originalName;
     this.prettyPrinted = prettyPrinted;
+    target.setIsABridge(true);
   }
 
   public String returnType() { return returnType; }

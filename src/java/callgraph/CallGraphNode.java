@@ -59,6 +59,7 @@ public class CallGraphNode {
     this.kinds = kinds;
     this.sccID = 0;
     this.target = target;
+    target.setCallGraphNode(this);
   }
 
   public List<String> getKinds() { return kinds; }
