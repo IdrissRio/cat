@@ -259,8 +259,7 @@ public void addCallGraph(CallGraph callGraph) {
       for (CallGraphNode callee : callees) {
         Integer calleeSccID = callee.getSccID();
 
-        if (calleeSccID != nodeSccID && sccIdCounts.get(calleeSccID) >= 2 &&
-            callee.getKinds().contains("syn")) {
+        if (calleeSccID != nodeSccID && sccIdCounts.get(calleeSccID) >= 2) {
           node.removeCallee(callee);
           String bridgeNodeName = "Bridge_" + callee.getMethodName();
           CallGraphNode bridgeNode = graph.get(bridgeNodeName);
@@ -301,7 +300,7 @@ public void addCallGraph(CallGraph callGraph) {
       Integer sccID = node.getSccID();
       sccIdCounts.put(sccID, sccIdCounts.getOrDefault(sccID, 0) + 1);
     }
-    addBridges();
+    // addBridges();
 
     StringBuilder jsonBuilder = new StringBuilder();
     jsonBuilder.append("{\n");
