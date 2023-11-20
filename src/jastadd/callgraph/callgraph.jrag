@@ -77,6 +77,29 @@ public
     return g;
   }
 
+  syn Set<InvocationTarget> InvocationTarget.cg()
+      circular[new LinkedHashSet<>()] {
+    Set<InvocationTarget> cg = new LinkedHashSet<>();
+    for (Invocable m : calledMethods()) {
+      processDeclarations(m.allDecls(), cg);
+    }
+    processDeclarations(implicitCalls(), cg);
+
+    return cg;
+  }
+
+public
+  void InvocationTarget.processDeclarations(Set<InvocationTarget> declarations,
+                                            Set<InvocationTarget> callGraph) {
+    for (InvocationTarget declaration : declarations) {
+      if (declaration.shouldBeConsiderAsMethod()) {
+        callGraph.add(declaration);
+      } else {
+        callGraph.addAll(declaration.cg());
+      }
+    }
+  }
+
   syn InvocationTarget Program.getTarget(String pkg, String name) {
     String packageName =
         pkg.contains(".") ? pkg.substring(0, pkg.lastIndexOf(".")) : "";
@@ -239,9 +262,10 @@ public
    *
    * @return The set of implicit call targets.
    */
-  syn Set<InvocationTarget> InvocationTarget.implicitCalls() = new HashSet<>();
+  syn Set<InvocationTarget> InvocationTarget.implicitCalls() =
+      new LinkedHashSet<>();
   eq ConstructorDecl.implicitCalls() {
-    Set<InvocationTarget> implicitCallTargets = new HashSet<>();
+    Set<InvocationTarget> implicitCallTargets = new LinkedHashSet<>();
     implicitCallTargets.addAll(
         ((ClassDecl)hostType()).getInstanceInitailizer());
     implicitCallTargets.addAll(((ClassDecl)hostType()).getStaticInitailizer());
@@ -288,7 +312,7 @@ public
   syn Set<InvocationTarget> Invocable.allDecls() =
       Collections.<InvocationTarget>singleton(decl());
   eq MethodAccess.allDecls() {
-    Set<InvocationTarget> decls = new HashSet<>();
+    Set<InvocationTarget> decls = new LinkedHashSet<>();
     decls.add(decl());
     if (decl().isPrivate()) {
       return decls;

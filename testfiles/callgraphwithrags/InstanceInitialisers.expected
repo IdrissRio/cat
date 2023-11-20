@@ -1,0 +1,5 @@
+org.extendj.callgraph.InstanceInitialisers::main(String[])->org.extendj.callgraph.A::A()
+org.extendj.callgraph.A::A()->org.extendj.callgraph.T::T(),java.io.PrintStream::println(java.lang.String)
+org.extendj.callgraph.T::T()->java.lang.Object::<init>(),java.io.PrintStream::println(java.lang.String),org.extendj.callgraph.T::init<>
+org.extendj.callgraph.T::init<>->java.io.PrintStream::println(java.lang.String)
+
