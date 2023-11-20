@@ -5,7 +5,7 @@
 </p>
 
 CAT (CallGraph Analysis Tool) is a Java tool that constructs call graphs based 
-on Class Hierarchy Analysis. It uses JastAdd and reference attribute 
+on Class Hierarchy Analaysis and a variant of Rapid Type Analysis. It uses JastAdd and reference attribute 
 grammars for its implementation. CAT also uses some API provided by the ExtendJ Java 
 compiler to compute the call graph.
 
@@ -21,7 +21,10 @@ compiler to compute the call graph.
 
 ## Introduction
 
-CAT (CallGraph Analysis Tool) is designed to facilitate the analysis of call graphs in Java programs. By employing Class Hierarchy Analysis techniques, CAT generates call graphs that illustrate the relationships and dependencies between different classes and methods in a Java codebase.
+CAT (CallGraph Analysis Tool) is designed to compute the call graphs of Java programs.
+By using CHA and RTA techniques, CAT generates call graphs where nodes are methods and edges are 
+method calls. CAT also provides a web-based visualisation tool to visualise the generated call graphs in 
+the browser.
 
 ## Features
 
@@ -58,12 +61,12 @@ CAT is designed to be user-friendly and easy to use. Here's how you can use it:
 
 1. Generate a call graph for a Java program.
 ```bash
-java -jar cat.jar <path-to-java-program> -o <output-file>
+java -jar cat.jar <path-to-java-program> -o <output-file> -entryPoint <package-name>.<class-name> <method-name>
 ```
 
 2. Visualise the generated call graph.
 ```bash
-java -jar cat.jar <path-to-java-program> -visualise
+java -jar cat.jar <path-to-java-program> -visualise -entryPoint <package-name>.<class-name> <method-name>
 ```
 Navigate to `http://localhost:8080` to view the visualisation.
 
@@ -128,7 +131,7 @@ class A {
 To generate a call graph for this program, we can run the following command:
 
 ```bash
-java -jar cat.jar ~/Example.java -o ~/Example.json
+java -jar cat.jar ~/Example.java -o ~/Example.json -entryPoint Example main
 ```
 
 This will generate a call graph in JSON format and save it in a file called ~/Example.json.
@@ -136,7 +139,7 @@ This will generate a call graph in JSON format and save it in a file called ~/Ex
 To visualise the generated call graph, we can run the following command:
 
 ```bash
-java -jar cat.jar ~/Example.java -visualise
+java -jar cat.jar ~/Example.java  -entryPoint Example main --visualise
 ```
 
 By visiting `http://localhost:8080` in a web browser, we can view the visualisation of the generated call graph.
