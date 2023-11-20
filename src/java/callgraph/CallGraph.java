@@ -395,7 +395,57 @@ public void addCallGraph(CallGraph callGraph) {
     jsonBuilder.append("\n  ]\n");
 
     jsonBuilder.append("}\n");
-
+    computeStatistics(this);
     return jsonBuilder.toString();
+  }
+
+  public static void computeStatistics(CallGraph callGraph) {
+    int numberOfNodes = callGraph.getGraph().size();
+    int numberOfCircularNodes = countCircularNodes(callGraph);
+    Map<Integer, Integer> sccSizes = calculateSCCSizes(callGraph);
+    int numberOfLargeSCCs = countLargeSCCs(sccSizes);
+
+    int totalSCCSize = sccSizes.values()
+                           .stream()
+                           .filter(size -> size > 2)
+                           .mapToInt(Integer::intValue)
+                           .sum();
+    int numSCCGreaterTwo =
+        (int)sccSizes.values().stream().filter(size -> size > 2).count();
+    double meanSCCSize = totalSCCSize / (double)numSCCGreaterTwo;
+    int maxSCCSize = sccSizes.values().stream().max(Integer::compare).orElse(0);
+
+    System.out.println("Number of nodes: " + numberOfNodes);
+    System.out.println("Number of circular nodes: " + numberOfCircularNodes);
+    System.out.println("Number of SCCs with size greater than two: " +
+                       numberOfLargeSCCs);
+    System.out.println("Mean size of SCCs: " + meanSCCSize);
+    System.out.println("Maximum size of SCC: " + maxSCCSize);
+  }
+
+  private static int countCircularNodes(CallGraph callGraph) {
+    int count = 0;
+    for (CallGraphNode node : callGraph.getGraph().values()) {
+      if (node.getKinds().contains("circular")) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  private static Map<Integer, Integer> calculateSCCSizes(CallGraph callGraph) {
+    Map<Integer, Integer> sccSizes = new HashMap<>();
+    callGraph.computeSCCs();
+
+    for (CallGraphNode node : callGraph.getGraph().values()) {
+      int sccID = node.getSccID();
+      sccSizes.put(sccID, sccSizes.getOrDefault(sccID, 0) + 1);
+    }
+
+    return sccSizes;
+  }
+
+  private static int countLargeSCCs(Map<Integer, Integer> sccSizes) {
+    return (int)sccSizes.values().stream().filter(size -> size > 2).count();
   }
 }
