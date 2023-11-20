@@ -157,6 +157,7 @@ public class Cat extends Frontend {
     if (exitCode != 0) {
       System.exit(exitCode);
     }
+
     log("Starting call graph generation");
     CallGraph cg = cat.getEntryPoint().callGraph();
     log("Call graph generation finished");
@@ -227,14 +228,19 @@ public class Cat extends Frontend {
   }
 
   private void printOptionsUsage() {
-    System.out.println("Usage: java -jar  cat.jar [options] <source_files>");
+    System.out.println("Usage: java -jar cat.jar [options] <source_files>");
     System.out.println("Options:");
     System.out.println(
-        "  -attributesOnly  Enable consideration of attributes only");
+        "[MANDATORY]  -entryPoint <package> <method> Specify the entry point package and method");
+    System.out.println(
+        "  -attributesOnly   Enable consideration of attributes only. Methods will be discarded.");
     System.out.println("  -classpath <path> Specify the classpath");
     System.out.println("  -visualise        Visualize the call graph");
     System.out.println(
         "  -o <path>         Save call graph to a JSON file at the specified path");
+    System.out.println("  -rta              Enable Rapid Type Analysis");
+    System.out.println(
+        "  -mergeNames       Enable name merging for attributes. This option will discards type information");
     System.exit(1);
   }
 }
