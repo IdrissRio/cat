@@ -1,9 +1,9 @@
-// PackageName: org.extendj.sccid.Cyclic
+// PackageName: org.extendj.callgraph.Circular
 // MethodName: foo
 
-package org.extendj.sccid;
+package org.extendj.callgraph;
 
-public class Cyclic {
+public class Circular {
   void foo() { bar(); }
 
   void bar() { baz(); }

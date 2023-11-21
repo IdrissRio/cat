@@ -83,7 +83,6 @@ public class CallGraphRAGs {
                                                       program.entryPointMethod);
       Set<InvocationTarget> visited = new LinkedHashSet<>();
       traverseCallGraph(entryPoint, visited, sb);
-
       outStream.println(sb.toString());
 
       UtilTest.compareOutput(

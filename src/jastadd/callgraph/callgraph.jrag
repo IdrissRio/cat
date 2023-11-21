@@ -81,8 +81,8 @@ public
 public
   int InvocationTarget.computeSCCs() {
     Stack<InvocationTarget> stack = new Stack<>();
-    Set<InvocationTarget> visited = new HashSet<>();
-    Set<InvocationTarget> scc = new HashSet<>();
+    Set<InvocationTarget> visited = new LinkedHashSet<>();
+    Set<InvocationTarget> scc = new LinkedHashSet<>();
     scc.add(this);
     scc.addAll(cg());
 
@@ -392,7 +392,10 @@ public
     }
     MethodDecl targetDecl = decl();
     TypeDecl host = targetDecl.hostType().getGenericHostDecl();
+    Set<TypeDecl> allInstances = enclosingTarget().newInstances();
     for (TypeDecl t : host.subtypes()) {
+      if (!allInstances.contains(t))
+        continue;
       if (t instanceof ClassDecl || t instanceof InterfaceDecl) {
         decls.addAll(
             t.methods()
@@ -401,6 +404,7 @@ public
                 .collect(Collectors.toList()));
       }
     }
+
     return decls;
   }
 
@@ -560,4 +564,33 @@ public
     }
     return kinds;
   }
+}
+
+aspect RTA {
+
+  syn Set<TypeDecl> InvocationTarget.newInstances()
+      circular[program().instanciatedTypes()] {
+    Set<TypeDecl> newInstances = new LinkedHashSet<>();
+    newInstances.addAll(localInstances());
+    for (InvocationTarget decl : reversedCG()) {
+      if (decl instanceof MethodDecl) {
+        MethodDecl md = (MethodDecl)decl;
+        newInstances.addAll(md.newInstances());
+      } else if (decl instanceof ConstructorDecl) {
+        ConstructorDecl cd = (ConstructorDecl)decl;
+        newInstances.addAll(cd.newInstances());
+      } else if (decl instanceof InstanceInitializer) {
+        InstanceInitializer ii = (InstanceInitializer)decl;
+        newInstances.addAll(ii.newInstances());
+      } else if (decl instanceof StaticInitializer) {
+        StaticInitializer si = (StaticInitializer)decl;
+        newInstances.addAll(si.newInstances());
+      }
+    }
+    return newInstances;
+  }
+
+  coll Set<TypeDecl> InvocationTarget
+      .localInstances()[new LinkedHashSet<>()] with addAll;
+  ClassInstanceExpr contributes type().subtypesIncludingSelf() to InvocationTarget.localInstances() for enclosingTarget();
 }
