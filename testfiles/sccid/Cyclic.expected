@@ -1,0 +1,5 @@
+org.extendj.callgraph.Cyclic::foo()->0
+org.extendj.callgraph.Cyclic::bar()->0
+org.extendj.callgraph.Cyclic::baz()->0
+org.extendj.callgraph.Cyclic::zzz()->0
+

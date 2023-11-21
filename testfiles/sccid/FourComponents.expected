@@ -1,0 +1,5 @@
+org.extendj.callgraph.FourComponents::foo()->0
+org.extendj.callgraph.FourComponents::bar()->1
+org.extendj.callgraph.FourComponents::baz()->2
+org.extendj.callgraph.FourComponents::zzz()->3
+

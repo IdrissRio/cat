@@ -35,6 +35,102 @@ import org.extendj.Cat;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+aspect CallGraphWithRAGS {
+  coll Set<InvocationTarget> InvocationTarget
+      .reversedCG()[new LinkedHashSet<>()] with add;
+  InvocationTarget contributes this to InvocationTarget.reversedCG() for each cg();
+
+  syn Set<InvocationTarget> InvocationTarget.cg()
+      circular[new LinkedHashSet<>()] {
+    Set<InvocationTarget> cg = new LinkedHashSet<>();
+    for (Invocable m : calledMethods()) {
+      processDeclarations(m.allDecls(), cg);
+    }
+    processDeclarations(implicitCalls(), cg);
+
+    return cg;
+  }
+
+public
+  void InvocationTarget.processDeclarations(Set<InvocationTarget> declarations,
+                                            Set<InvocationTarget> callGraph) {
+    for (InvocationTarget declaration : declarations) {
+      if (declaration.shouldBeConsiderAsMethod()) {
+        callGraph.add(declaration);
+      } else {
+        callGraph.addAll(declaration.cg());
+      }
+    }
+  }
+
+public
+  int Program.currentSccId = 0;
+
+public
+  int MethodDecl.sccID = -1;
+public
+  int ConstructorDecl.sccID = -1;
+public
+  int InstanceInitializer.sccID = -1;
+public
+  int StaticInitializer.sccID = -1;
+
+  syn lazy int InvocationTarget.getSCCID() =
+      (sccID == -1) ? computeSCCs() : sccID;
+
+public
+  int InvocationTarget.computeSCCs() {
+    Stack<InvocationTarget> stack = new Stack<>();
+    Set<InvocationTarget> visited = new HashSet<>();
+    Set<InvocationTarget> scc = new HashSet<>();
+    scc.add(this);
+    scc.addAll(cg());
+
+    for (InvocationTarget node : scc) {
+      if (!visited.contains(node)) {
+        node.dfs(stack, visited);
+      }
+    }
+
+    visited.clear();
+    while (!stack.isEmpty()) {
+      InvocationTarget node = stack.pop();
+      if (!visited.contains(node)) {
+        node.dfs(visited, program().currentSccId);
+        program().currentSccId++;
+      }
+    }
+
+    return this.sccID;
+  }
+
+public
+  void InvocationTarget.dfs(Stack<InvocationTarget> stack,
+                            Set<InvocationTarget> visited) {
+    visited.add(this);
+
+    for (InvocationTarget neighbor : cg()) {
+      if (!visited.contains(neighbor)) {
+        neighbor.dfs(stack, visited);
+      }
+    }
+
+    stack.push(this);
+  }
+
+public
+  void InvocationTarget.dfs(Set<InvocationTarget> visited, int currentSccId) {
+    visited.add(this);
+    sccID = currentSccId;
+
+    for (InvocationTarget neighbor : reversedCG()) {
+      if (!visited.contains(neighbor)) {
+        neighbor.dfs(visited, currentSccId);
+      }
+    }
+  }
+}
+
 aspect CallGraph {
 
   /**
@@ -75,29 +171,6 @@ public
     InvocationTarget caller = target.shouldBeConsiderAsMethod() ? target : null;
     target.callGraphBuilder(g, new HashSet<>(), caller, true);
     return g;
-  }
-
-  syn Set<InvocationTarget> InvocationTarget.cg()
-      circular[new LinkedHashSet<>()] {
-    Set<InvocationTarget> cg = new LinkedHashSet<>();
-    for (Invocable m : calledMethods()) {
-      processDeclarations(m.allDecls(), cg);
-    }
-    processDeclarations(implicitCalls(), cg);
-
-    return cg;
-  }
-
-public
-  void InvocationTarget.processDeclarations(Set<InvocationTarget> declarations,
-                                            Set<InvocationTarget> callGraph) {
-    for (InvocationTarget declaration : declarations) {
-      if (declaration.shouldBeConsiderAsMethod()) {
-        callGraph.add(declaration);
-      } else {
-        callGraph.addAll(declaration.cg());
-      }
-    }
   }
 
   syn InvocationTarget Program.getTarget(String pkg, String name) {
