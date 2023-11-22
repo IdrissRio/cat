@@ -1,0 +1,5 @@
+org.extendj.sccid.ManyTypes::main()->0
+org.extendj.sccid.A::A()->2
+java.lang.Object::<init>()->4
+org.extendj.sccid.A::init<>->3
+org.extendj.sccid.A::foo()->1
