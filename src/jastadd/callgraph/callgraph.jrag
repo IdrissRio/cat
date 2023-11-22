@@ -394,8 +394,8 @@ public
     TypeDecl host = targetDecl.hostType().getGenericHostDecl();
     Set<TypeDecl> allInstances = enclosingTarget().newInstances();
     for (TypeDecl t : host.subtypes()) {
-      if (!allInstances.contains(t))
-        continue;
+      // if (!allInstances.contains(t))
+      //   continue;
       if (t instanceof ClassDecl || t instanceof InterfaceDecl) {
         decls.addAll(
             t.methods()

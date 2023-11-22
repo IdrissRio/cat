@@ -34,8 +34,10 @@ import static spark.Spark.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -147,28 +149,32 @@ public class Cat extends Frontend {
       throws FileNotFoundException, InterruptedException, IOException {
     Cat cat = new Cat();
     String[] jCheckerArgs = cat.setEnv(args);
-    cat.getEntryPoint().attributesOnly = cat.getConsiderOnlyAttributes();
-    cat.getEntryPoint().mergeNames = cat.getMergeNames();
-    cat.getEntryPoint().entryPointPackage = cat.getEntryPointPackage();
-    cat.getEntryPoint().entryPointMethod = cat.getEntryPointMethod();
-    cat.getEntryPoint().rta = cat.rta;
+    Program root = cat.getEntryPoint();
+    root.attributesOnly = cat.getConsiderOnlyAttributes();
+    root.mergeNames = cat.getMergeNames();
+    root.entryPointPackage = cat.getEntryPointPackage();
+    root.entryPointMethod = cat.getEntryPointMethod();
+    root.rta = cat.rta;
     int exitCode = cat.run(jCheckerArgs);
-    DrAST_root_node = cat.getEntryPoint();
+    DrAST_root_node = root;
     if (exitCode != 0) {
       System.exit(exitCode);
     }
 
     log("Starting call graph generation");
-    CallGraph cg = cat.getEntryPoint().callGraph();
+    // CallGraph cg = cat.getEntryPoint().callGraph();
+
     log("Call graph generation finished");
     log("Starting SCCs computation");
-    cg.computeSCCs();
+    // cg.computeSCCs();
     log("SCCs computation finished");
 
-    String callgraphJson = cg.toJson();
+    // String callgraphJson = cg.toJson();
     if (cat.getSaveCallGraph()) {
-      PrintWriter out = new PrintWriter(cat.getCallGraphPath());
-      out.println(callgraphJson);
+      File file = new File(cat.getCallGraphPath());
+      PrintStream out = new PrintStream(new FileOutputStream(file));
+      // out.println(callgraphJson);
+      root.callGraph2JSON(out);
       out.close();
       log("Call graph saved to " + cat.getCallGraphPath());
     }
@@ -177,7 +183,18 @@ public class Cat extends Frontend {
       log("You can visualize the call graph at http://localhost:8080/index.html");
       staticFiles.location("/public");
       port(8080);
-      get("/getCallgraphData", (req, res) -> { return callgraphJson; });
+      get("/getCallgraphData", (req, res) -> {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             PrintStream out = new PrintStream(baos)) {
+          root.callGraph2JSON(
+              out); // Inefficient. Recomputing the callgraph twice.
+          return baos.toString();
+        } catch (IOException e) {
+          // Handle IOException if necessary
+          e.printStackTrace();
+          return "Error generating JSON";
+        }
+      });
     }
   }
 

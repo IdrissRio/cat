@@ -1,0 +1,95 @@
+/* Copyright (c) 2023, Idriss Riouak <idriss.riouak@cs.lth.se>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ * contributors may be used to endorse or promote products derived from this
+ * software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+aspect CG2JSON {
+public
+  void Program.callGraph2JSON(PrintStream out) {
+    InvocationTarget entryPoint =
+        getTarget(entryPointPackage, entryPointMethod);
+    out.println("{");
+    out.println("  \"nodes\": [");
+    ArrayList<InvocationTarget> all =
+        new ArrayList<InvocationTarget>(completeCallGraph(entryPoint));
+    for (int i = 0; i < all.size(); i++) {
+      out.println("    {");
+      InvocationTarget target = all.get(i);
+      target.nodes2JSON(out);
+      out.println("    }" + (i < all.size() - 1 ? "," : ""));
+    }
+
+    out.println("  ],");
+    out.println("  \"edges\": [");
+    Boolean first = true;
+    for (InvocationTarget target : all) {
+      target.edges2JSON(out, first);
+      first = false;
+    }
+    out.println("  ]");
+    out.println("}");
+  }
+
+  syn Set<InvocationTarget> Program.completeCallGraph(InvocationTarget target)
+      circular[new HashSet<>()] {
+    Set<InvocationTarget> cg = new LinkedHashSet<InvocationTarget>();
+    cg.add(target);
+    for (InvocationTarget neighbor : target.cg()) {
+      if (!cg.contains(neighbor)) {
+        cg.addAll(completeCallGraph(neighbor));
+      }
+    }
+    return cg;
+  }
+
+public
+  void InvocationTarget.nodes2JSON(PrintStream out) {
+
+    out.println("      \"methodName\": \"" + targetSignature() + "\",");
+    out.println("      \"sccId\": " + getSCCID() + ",");
+    out.println("      \"uniqueSCCAndNoSelfLoop\": " + !inSCC() + ",");
+    out.println("      \"kind\": [");
+    for (int i = 0; i < getKindOfAttribute().size(); i++) {
+      out.println("        \"" + getKindOfAttribute().get(i) + "\"" +
+                  (i < getKindOfAttribute().size() - 1 ? "," : ""));
+    }
+    out.println("      ]");
+  }
+public
+  void InvocationTarget.edges2JSON(PrintStream out, Boolean first) {
+    for (InvocationTarget neighbor : cg()) {
+      out.println((first ? "    " : "   ,") + "    {");
+      if (first) {
+        first = false;
+      }
+      out.println("      \"source\": \"" + targetSignature() + "\",");
+      out.println("      \"target\": \"" + neighbor.targetSignature() + "\"");
+      out.println("    }");
+    }
+  }
+}
