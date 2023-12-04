@@ -1,157 +1,97 @@
 {
   "nodes": [
     {
+      "methodName": "org.ast.MainProgram::main(String[])",
+      "sccId": 0,
+      "uniqueSCCAndNoSelfLoop": true,
+      "kind": [
+        "method"
+      ]
+    },
+    {
       "methodName": "org.ast.Declaration::lookup(java.lang.String)",
       "sccId": 10,
-      "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-        "label": "String"
-      },
+      "uniqueSCCAndNoSelfLoop": false,
       "kind": [
         "inh"
       ]
     },
     {
       "methodName": "org.ast.Declaration::localLookup(java.lang.String)",
-      "sccId": 12,
-      "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-        "label": "String"
-      },
-      "kind": [
-        "syn"
-      ]
-    },
-    {
-      "methodName": "org.ast.State::localLookup(java.lang.String)",
       "sccId": 11,
-      "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-        "label": "String"
-      },
+      "uniqueSCCAndNoSelfLoop": false,
       "kind": [
         "syn"
       ]
     },
     {
       "methodName": "org.ast.State::predecessors()",
-      "sccId": 5,
-      "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-
-      },
+      "sccId": 6,
+      "uniqueSCCAndNoSelfLoop": false,
       "kind": [
         "collection"
       ]
     },
     {
       "methodName": "org.ast.State::successors()",
-      "sccId": 6,
-      "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-
-      },
+      "sccId": 7,
+      "uniqueSCCAndNoSelfLoop": false,
       "kind": [
         "syn"
       ]
     },
     {
       "methodName": "org.ast.State::transitions()",
-      "sccId": 8,
+      "sccId": 9,
       "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-
-      },
       "kind": [
         "collection"
       ]
     },
     {
-      "methodName": "org.ast.Transition::source()",
-      "sccId": 9,
-      "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-
-      },
-      "kind": [
-        "syn"
-      ]
-    },
-    {
       "methodName": "org.ast.Transition::target()",
-      "sccId": 7,
-      "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-
-      },
+      "sccId": 8,
+      "uniqueSCCAndNoSelfLoop": false,
       "kind": [
         "syn"
       ]
     },
     {
       "methodName": "org.ast.State::hasLaterNamesake()",
-      "sccId": 3,
+      "sccId": 4,
       "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-
-      },
       "kind": [
         "syn"
       ]
     },
     {
       "methodName": "org.ast.Declaration::lookupForward(java.lang.String)",
-      "sccId": 4,
+      "sccId": 5,
       "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-        "label": "String"
-      },
       "kind": [
         "inh"
       ]
     },
     {
       "methodName": "org.ast.State::multiplyDeclared()",
-      "sccId": 1,
+      "sccId": 2,
       "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-
-      },
       "kind": [
         "syn"
       ]
     },
     {
       "methodName": "org.ast.State::alreadyDeclared()",
-      "sccId": 2,
-      "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-
-      },
+      "sccId": 3,
+      "uniqueSCCAndNoSelfLoop": false,
       "kind": [
         "syn"
       ]
     },
     {
       "methodName": "org.ast.State::reachable()",
-      "sccId": 0,
-      "uniqueSCCAndNoSelfLoop": true,
-      "bridge": false,
-      "paramTypes": {
-
-      },
+      "sccId": 1,
+      "uniqueSCCAndNoSelfLoop": false,
       "kind": [
         "syn",
         "circular"
@@ -159,70 +99,73 @@
     }
   ],
   "edges": [
-    {
+        {
+      "source": "org.ast.MainProgram::main(String[])",
+      "target": "org.ast.Declaration::lookup(java.lang.String)"
+    }
+   ,    {
+      "source": "org.ast.MainProgram::main(String[])",
+      "target": "org.ast.State::predecessors()"
+    }
+   ,    {
+      "source": "org.ast.MainProgram::main(String[])",
+      "target": "org.ast.State::hasLaterNamesake()"
+    }
+   ,    {
+      "source": "org.ast.MainProgram::main(String[])",
+      "target": "org.ast.State::multiplyDeclared()"
+    }
+   ,    {
+      "source": "org.ast.MainProgram::main(String[])",
+      "target": "org.ast.State::reachable()"
+    }
+   ,    {
       "source": "org.ast.Declaration::lookup(java.lang.String)",
       "target": "org.ast.Declaration::localLookup(java.lang.String)"
-    },
-    {
-      "source": "org.ast.Declaration::lookup(java.lang.String)",
-      "target": "org.ast.State::localLookup(java.lang.String)"
-    },
-    {
+    }
+   ,    {
       "source": "org.ast.State::predecessors()",
       "target": "org.ast.State::successors()"
-    },
-    {
+    }
+   ,    {
       "source": "org.ast.State::successors()",
       "target": "org.ast.State::transitions()"
-    },
-    {
+    }
+   ,    {
       "source": "org.ast.State::successors()",
       "target": "org.ast.Transition::target()"
-    },
-    {
-      "source": "org.ast.State::transitions()",
-      "target": "org.ast.Transition::source()"
-    },
-    {
-      "source": "org.ast.Transition::source()",
-      "target": "org.ast.Declaration::lookup(java.lang.String)"
-    },
-    {
+    }
+   ,    {
       "source": "org.ast.Transition::target()",
       "target": "org.ast.Declaration::lookup(java.lang.String)"
-    },
-    {
+    }
+   ,    {
       "source": "org.ast.State::hasLaterNamesake()",
       "target": "org.ast.Declaration::lookupForward(java.lang.String)"
-    },
-    {
+    }
+   ,    {
       "source": "org.ast.Declaration::lookupForward(java.lang.String)",
       "target": "org.ast.Declaration::localLookup(java.lang.String)"
-    },
-    {
-      "source": "org.ast.Declaration::lookupForward(java.lang.String)",
-      "target": "org.ast.State::localLookup(java.lang.String)"
-    },
-    {
+    }
+   ,    {
       "source": "org.ast.State::multiplyDeclared()",
       "target": "org.ast.State::alreadyDeclared()"
-    },
-    {
+    }
+   ,    {
       "source": "org.ast.State::multiplyDeclared()",
       "target": "org.ast.State::hasLaterNamesake()"
-    },
-    {
+    }
+   ,    {
       "source": "org.ast.State::alreadyDeclared()",
       "target": "org.ast.Declaration::lookup(java.lang.String)"
-    },
-    {
+    }
+   ,    {
       "source": "org.ast.State::reachable()",
       "target": "org.ast.State::successors()"
-    },
-    {
+    }
+   ,    {
       "source": "org.ast.State::reachable()",
       "target": "org.ast.State::reachable()"
     }
   ]
 }
-

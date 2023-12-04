@@ -37,29 +37,52 @@ import java.util.stream.Collectors;
 
 aspect CallGraphWithRAGS {
   coll Set<InvocationTarget> InvocationTarget
-      .reversedCG()[new LinkedHashSet<>()] with add;
+      .reversedCG()[new LinkedHashSet<>()] with add root Program;
   InvocationTarget contributes this to InvocationTarget.reversedCG() for each cg();
+
+  coll Set<InvocationTarget> InvocationTarget
+      .completeReversedCG()[new LinkedHashSet<>()] with add root Program;
+  InvocationTarget contributes this to InvocationTarget.completeReversedCG() for each completeCallGraph();
 
   syn Set<InvocationTarget> InvocationTarget.cg()
       circular[new LinkedHashSet<>()] {
     Set<InvocationTarget> cg = new LinkedHashSet<>();
     for (Invocable m : calledMethods()) {
-      processDeclarations(m.allDecls(), cg);
+      processAttributeDeclarations(m.allDecls(), cg);
     }
-    processDeclarations(implicitCalls(), cg);
+    processAttributeDeclarations(implicitCalls(), cg);
+
+    return cg;
+  }
+
+  syn Set<InvocationTarget> InvocationTarget.completeCallGraph()
+      circular[new LinkedHashSet<>()] {
+    Set<InvocationTarget> cg = new LinkedHashSet<>();
+    for (Invocable m : calledMethods()) {
+      processAllDeclarations(m.allDecls(), cg);
+    }
+    processAllDeclarations(implicitCalls(), cg);
 
     return cg;
   }
 
 public
-  void InvocationTarget.processDeclarations(Set<InvocationTarget> declarations,
-                                            Set<InvocationTarget> callGraph) {
+  void InvocationTarget.processAttributeDeclarations(
+      Set<InvocationTarget> declarations, Set<InvocationTarget> callGraph) {
     for (InvocationTarget declaration : declarations) {
       if (declaration.shouldBeConsiderAsMethod()) {
         callGraph.add(declaration);
       } else {
         callGraph.addAll(declaration.cg());
       }
+    }
+  }
+
+public
+  void InvocationTarget.processAllDeclarations(
+      Set<InvocationTarget> declarations, Set<InvocationTarget> callGraph) {
+    for (InvocationTarget declaration : declarations) {
+      callGraph.add(declaration);
     }
   }
 
@@ -394,8 +417,8 @@ public
     TypeDecl host = targetDecl.hostType().getGenericHostDecl();
     Set<TypeDecl> allInstances = enclosingTarget().newInstances();
     for (TypeDecl t : host.subtypes()) {
-      // if (!allInstances.contains(t))
-      //   continue;
+      if (!allInstances.contains(t))
+        continue;
       if (t instanceof ClassDecl || t instanceof InterfaceDecl) {
         decls.addAll(
             t.methods()
@@ -572,7 +595,7 @@ aspect RTA {
       circular[program().instanciatedTypes()] {
     Set<TypeDecl> newInstances = new LinkedHashSet<>();
     newInstances.addAll(localInstances());
-    for (InvocationTarget decl : reversedCG()) {
+    for (InvocationTarget decl : completeReversedCG()) {
       if (decl instanceof MethodDecl) {
         MethodDecl md = (MethodDecl)decl;
         newInstances.addAll(md.newInstances());
@@ -585,12 +608,14 @@ aspect RTA {
       } else if (decl instanceof StaticInitializer) {
         StaticInitializer si = (StaticInitializer)decl;
         newInstances.addAll(si.newInstances());
+      } else {
+        throw new RuntimeException("CAT: Unknown invocation target.");
       }
     }
     return newInstances;
   }
 
   coll Set<TypeDecl> InvocationTarget
-      .localInstances()[new LinkedHashSet<>()] with addAll;
+      .localInstances()[new LinkedHashSet<>()] with addAll root BodyDecl;
   ClassInstanceExpr contributes type().subtypesIncludingSelf() to InvocationTarget.localInstances() for enclosingTarget();
 }
