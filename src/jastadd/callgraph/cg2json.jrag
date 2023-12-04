@@ -58,7 +58,8 @@ public
   syn Set<InvocationTarget> Program.completeCallGraph(InvocationTarget target)
       circular[new HashSet<>()] {
     Set<InvocationTarget> cg = new LinkedHashSet<InvocationTarget>();
-    cg.add(target);
+    if (target.shouldBeConsiderAsMethod())
+      cg.add(target);
     for (InvocationTarget neighbor : target.cg()) {
       if (!cg.contains(neighbor)) {
         cg.addAll(completeCallGraph(neighbor));
