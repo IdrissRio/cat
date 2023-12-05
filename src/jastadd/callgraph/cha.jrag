@@ -127,12 +127,18 @@ aspect CHA {
   syn Set<TypeDecl> TypeDecl.subtypesIncludingSelf() {
     Set<TypeDecl> subtypes = new HashSet<>(subtypes());
     subtypes.add(this);
-    if (program().rta) {
-      subtypes = subtypes.stream()
-                     .filter(t->program().instanciatedTypes().contains(t))
-                     .collect(Collectors.toSet());
-    }
+    // if (program().rta) {
+    //   subtypes = subtypes.stream()
+    //                  .filter(t->program().instanciatedTypes().contains(t))
+    //                  .collect(Collectors.toSet());
+    // }
     return subtypes;
+  }
+
+  syn Set<TypeDecl> TypeDecl.supertypesIncludingSelf() {
+    Set<TypeDecl> supertypes = new HashSet<>(supertypes());
+    supertypes.add(this);
+    return supertypes;
   }
 
 public

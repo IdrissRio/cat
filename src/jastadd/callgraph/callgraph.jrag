@@ -70,7 +70,10 @@ public
   void InvocationTarget.processAttributeDeclarations(
       Set<InvocationTarget> declarations, Set<InvocationTarget> callGraph) {
     for (InvocationTarget declaration : declarations) {
-      if (declaration.shouldBeConsiderAsMethod()) {
+      if (declaration.shouldBeConsiderAsMethod() &&
+          declaration.itsTypeIsCreated(this)) {
+        TypeDecl host = hostType().getGenericHostDecl();
+        Set<TypeDecl> allInstances = newInstances();
         callGraph.add(declaration);
       } else {
         callGraph.addAll(declaration.cg());
@@ -353,6 +356,17 @@ public
   eq MethodDecl.shouldBeConsiderAsMethod() =
       (!program().attributesOnly || isAnAttribute()) && hasBlock();
 
+  syn boolean InvocationTarget.itsTypeIsCreated(InvocationTarget caller) {
+    TypeDecl host = hostType().getGenericHostDecl();
+    Set<TypeDecl> allInstances = caller.newInstances();
+    for (TypeDecl t : allInstances) {
+      if (host.subtype(t)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Returns a set of implicit call targets for this invocation target.
    *
@@ -417,8 +431,6 @@ public
     TypeDecl host = targetDecl.hostType().getGenericHostDecl();
     Set<TypeDecl> allInstances = enclosingTarget().newInstances();
     for (TypeDecl t : host.subtypes()) {
-      if (!allInstances.contains(t))
-        continue;
       if (t instanceof ClassDecl || t instanceof InterfaceDecl) {
         decls.addAll(
             t.methods()
@@ -592,7 +604,7 @@ public
 aspect RTA {
 
   syn Set<TypeDecl> InvocationTarget.newInstances()
-      circular[program().instanciatedTypes()] {
+      circular[new LinkedHashSet<>()] {
     Set<TypeDecl> newInstances = new LinkedHashSet<>();
     newInstances.addAll(localInstances());
     for (InvocationTarget decl : completeReversedCG()) {
@@ -616,6 +628,6 @@ aspect RTA {
   }
 
   coll Set<TypeDecl> InvocationTarget
-      .localInstances()[new LinkedHashSet<>()] with addAll root BodyDecl;
-  ClassInstanceExpr contributes type().subtypesIncludingSelf() to InvocationTarget.localInstances() for enclosingTarget();
+      .localInstances()[new LinkedHashSet<>()] with addAll;
+  ClassInstanceExpr contributes type().supertypesIncludingSelf() to InvocationTarget.localInstances() for enclosingTarget();
 }

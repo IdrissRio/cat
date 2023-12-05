@@ -35,8 +35,8 @@ public
         getTarget(entryPointPackage, entryPointMethod);
     out.println("{");
     out.println("  \"nodes\": [");
-    ArrayList<InvocationTarget> all =
-        new ArrayList<InvocationTarget>(completeCallGraph(entryPoint));
+    ArrayList<InvocationTarget> all = new ArrayList<InvocationTarget>();
+    completeCallGraph(entryPoint, new HashSet<InvocationTarget>(), all);
     for (int i = 0; i < all.size(); i++) {
       out.println("    {");
       InvocationTarget target = all.get(i);
@@ -55,17 +55,20 @@ public
     out.println("}");
   }
 
-  syn Set<InvocationTarget> Program.completeCallGraph(InvocationTarget target)
-      circular[new HashSet<>()] {
-    Set<InvocationTarget> cg = new LinkedHashSet<InvocationTarget>();
-    if (target.shouldBeConsiderAsMethod())
+public
+  void Program.completeCallGraph(InvocationTarget target,
+                                 Set<InvocationTarget> visited,
+                                 ArrayList<InvocationTarget> cg) {
+    if (visited.contains(target))
+      return;
+    visited.add(target);
+    if (target.shouldBeConsiderAsMethod()) {
       cg.add(target);
-    for (InvocationTarget neighbor : target.cg()) {
-      if (!cg.contains(neighbor)) {
-        cg.addAll(completeCallGraph(neighbor));
-      }
     }
-    return cg;
+    for (InvocationTarget neighbor : target.cg()) {
+      completeCallGraph(neighbor, visited, cg);
+    }
+    return;
   }
 
 public
