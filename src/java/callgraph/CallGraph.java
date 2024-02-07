@@ -73,6 +73,10 @@ public class CallGraph {
    */
   public CallGraphNode getEntryPoint() { return entryPoint; }
 
+  public void setEntryPoint(CallGraphNode entryPoint) {
+    this.entryPoint = entryPoint;
+  }
+
   public Map<String, CallGraphNode> getGraph() { return graph; }
 
   /**
@@ -88,6 +92,11 @@ public class CallGraph {
     CallGraphNode caller = getOrCreateNode(callerName, callerKinds, target1);
     CallGraphNode callee = getOrCreateNode(calleeName, calleeKinds, target2);
     caller.addCallee(callee);
+  }
+
+  public CallGraphNode addNode(String node, List<String> kinds,
+                               InvocationTarget target) {
+    return getOrCreateNode(node, kinds, target);
   }
 
   private CallGraphNode getOrCreateNode(String methodName, List<String> kinds,
@@ -328,6 +337,12 @@ public void addCallGraph(CallGraph callGraph) {
       jsonBuilder.append("      \"uniqueSCCAndNoSelfLoop\": ")
           .append(isUniqueSCCAndNoSelfLoop)
           .append(",\n");
+      jsonBuilder.append("      \"isEntryPoint\": ")
+          .append(methodName.equals(entryPoint.getMethodName()))
+          .append(",\n");
+      jsonBuilder.append("      \"path\": \"")
+          .append(node.getTarget().fullPath())
+          .append("\",\n");
       jsonBuilder.append("      \"bridge\": ")
           .append(node.isBridge())
           .append(",\n");
@@ -415,12 +430,12 @@ public void addCallGraph(CallGraph callGraph) {
     double meanSCCSize = totalSCCSize / (double)numSCCGreaterTwo;
     int maxSCCSize = sccSizes.values().stream().max(Integer::compare).orElse(0);
 
-    System.out.println("Number of nodes: " + numberOfNodes);
-    System.out.println("Number of circular nodes: " + numberOfCircularNodes);
-    System.out.println("Number of SCCs with size greater than two: " +
-                       numberOfLargeSCCs);
-    System.out.println("Mean size of SCCs: " + meanSCCSize);
-    System.out.println("Maximum size of SCC: " + maxSCCSize);
+    // System.out.println("Number of nodes: " + numberOfNodes);
+    // System.out.println("Number of circular nodes: " + numberOfCircularNodes);
+    // System.out.println("Number of SCCs with size greater than two: " +
+    //                    numberOfLargeSCCs);
+    // System.out.println("Mean size of SCCs: " + meanSCCSize);
+    // System.out.println("Maximum size of SCC: " + maxSCCSize);
   }
 
   private static int countCircularNodes(CallGraph callGraph) {

@@ -74,6 +74,8 @@ public
     InvocationTarget target = getTarget(entryPointPackage, entryPointMethod);
     InvocationTarget caller = target.shouldBeConsiderAsMethod() ? target : null;
     target.callGraphBuilder(g, new HashSet<>(), caller, true);
+    g.setEntryPoint(g.addNode(target.targetSignature(),
+                              target.getKindOfAttribute(), target));
     return g;
   }
 
@@ -162,11 +164,23 @@ public
     if (!first && shouldBeConsiderAsMethod() && previous != null) {
       addMethodCallToGraph(g, previous, this);
     }
+
     if (!visited.add(this)) {
       return;
     }
     processCalledMethods(g, visited, previous);
     processImplicitCalls(g, visited, previous);
+  }
+
+  inh CompilationUnit InvocationTarget.getEnclosingCompilationUnit();
+  eq CompilationUnit.getChild().getEnclosingCompilationUnit() = this;
+  eq Program.getChild().getEnclosingCompilationUnit() = null;
+
+  syn String InvocationTarget.fullPath() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(getEnclosingCompilationUnit().pathName());
+    sb.append(":" + getLine(getStart()));
+    return sb.toString();
   }
 
   /**

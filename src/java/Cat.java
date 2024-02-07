@@ -73,6 +73,7 @@ public class Cat extends Frontend {
   public String callGraphPath = "";
   public String entryPointPackage = "";
   public String entryPointMethod = "";
+  public boolean allMethods = false;
   public static Object DrAST_root_node;
   ;
 
@@ -108,6 +109,9 @@ public class Cat extends Frontend {
       case "-o":
         saveCallGraph = true;
         callGraphPath = args[++i];
+        break;
+      case "-allMethods":
+        allMethods = true;
         break;
       case "-rta":
         rta = true;
@@ -157,6 +161,10 @@ public class Cat extends Frontend {
     if (exitCode != 0) {
       System.exit(exitCode);
     }
+    if (cat.allMethods) {
+      System.out.println(cat.getEntryPoint().allMethodsToJson());
+      return;
+    }
 
     log("Starting call graph generation");
     CallGraph cg = cat.getEntryPoint().callGraph();
@@ -171,6 +179,8 @@ public class Cat extends Frontend {
       out.println(callgraphJson);
       out.close();
       log("Call graph saved to " + cat.getCallGraphPath());
+    } else {
+      System.out.println(callgraphJson);
     }
 
     if (cat.getVisualiseCallGraph()) {
@@ -224,7 +234,7 @@ public class Cat extends Frontend {
   public Program getEntryPoint() { return program; }
 
   private static void log(String message) {
-    System.out.println("\u001B[33m[INFO]\u001B[0m: " + message);
+    // System.out.println("\u001B[33m[INFO]\u001B[0m: " + message);
   }
 
   private void printOptionsUsage() {

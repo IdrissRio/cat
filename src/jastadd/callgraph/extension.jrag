@@ -1,0 +1,34 @@
+aspect AllMethods {
+  coll Set<MethodDecl> Program.allMethods()[new LinkedHashSet<MethodDecl>()];
+  MethodDecl contributes this to Program.allMethods();
+
+  // inh CompilationUnit MethodDecl.getEnclosingCompilationUnit();
+  // eq CompilationUnit.getChild().getEnclosingCompilationUnit() = this;
+
+  syn String Program.allMethodsToJson() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("[\n");
+    boolean firstMethod = true;
+
+    for (MethodDecl m : allMethods()) {
+      if (!firstMethod) {
+        sb.append(",\n");
+      } else {
+        firstMethod = false;
+      }
+
+      // Adding the property pathName to MethodDecl
+      sb.append("\t{\n");
+      sb.append("\t\t\"pathName\":\"" +
+                m.getEnclosingCompilationUnit().pathName() + "\",\n");
+      sb.append("\t\t\"name\":\"" + m.name() + "\",\n");
+      sb.append("\t\t\"lineStart\":\"" + m.getLine(m.getStart()) + "\",\n");
+      sb.append("\t\t\"packageName\":\"" + m.hostType().packageName() + "." +
+                m.hostType().name() + "\"\n");
+      sb.append("\t}");
+    }
+
+    sb.append("\n]\n");
+    return sb.toString();
+  }
+}
