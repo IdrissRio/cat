@@ -1,5 +1,0 @@
-org.extendj.callgraph.Circular::bar() -> org.extendj.callgraph.Circular::baz()
-org.extendj.callgraph.Circular::baz() -> org.extendj.callgraph.Circular::zzz()
-org.extendj.callgraph.Circular::foo() -> org.extendj.callgraph.Circular::bar()
-org.extendj.callgraph.Circular::zzz() -> org.extendj.callgraph.Circular::foo()
-

@@ -61,7 +61,6 @@ import java.util.TreeSet;
 import org.extendj.ast.CompilationUnit;
 import org.extendj.ast.Frontend;
 import org.extendj.ast.Program;
-import org.extendj.callgraph.CallGraph;
 
 /**
  * Perform static semantic checks on a Java program.
@@ -71,11 +70,12 @@ public class Cat extends Frontend {
   public boolean visualiseCallGraph = false;
   public boolean saveCallGraph = false;
   public boolean mergeNames = false;
-  public boolean rta = false;
   public String callGraphPath = "";
   public String entryPointPackage = "";
   public String entryPointMethod = "";
   public static Object DrAST_root_node;
+  public static boolean vscode = false;
+  public boolean forward = true;
   ;
 
   private String[] setEnv(String[] args) throws FileNotFoundException {
@@ -111,11 +111,14 @@ public class Cat extends Frontend {
         saveCallGraph = true;
         callGraphPath = args[++i];
         break;
-      case "-rta":
-        rta = true;
-        break;
       case "-mergeNames":
         mergeNames = true;
+        break;
+      case "-vscode":
+        vscode = true;
+        break;
+      case "-backward":
+        forward = true;
         break;
       default:
         System.err.println("Unrecognized option: " + opt);
@@ -154,7 +157,6 @@ public class Cat extends Frontend {
     root.mergeNames = cat.getMergeNames();
     root.entryPointPackage = cat.getEntryPointPackage();
     root.entryPointMethod = cat.getEntryPointMethod();
-    root.rta = cat.rta;
     int exitCode = cat.run(jCheckerArgs);
     DrAST_root_node = root;
     if (exitCode != 0) {
@@ -174,7 +176,7 @@ public class Cat extends Frontend {
       File file = new File(cat.getCallGraphPath());
       PrintStream out = new PrintStream(new FileOutputStream(file));
       // out.println(callgraphJson);
-      root.callGraph2JSON(out);
+      root.callGraph2JSON(out, true);
       out.close();
       log("Call graph saved to " + cat.getCallGraphPath());
     }
@@ -187,7 +189,7 @@ public class Cat extends Frontend {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              PrintStream out = new PrintStream(baos)) {
           root.callGraph2JSON(
-              out); // Inefficient. Recomputing the callgraph twice.
+              out, true); // Inefficient. Recomputing the callgraph twice.
           return baos.toString();
         } catch (IOException e) {
           // Handle IOException if necessary
@@ -241,7 +243,9 @@ public class Cat extends Frontend {
   public Program getEntryPoint() { return program; }
 
   private static void log(String message) {
-    System.out.println("\u001B[33m[INFO]\u001B[0m: " + message);
+    if (!vscode) {
+      System.out.println("\u001B[33m[INFO]\u001B[0m: " + message);
+    }
   }
 
   private void printOptionsUsage() {

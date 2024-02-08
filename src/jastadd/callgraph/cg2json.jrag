@@ -30,13 +30,17 @@
 
 aspect CG2JSON {
 public
-  void Program.callGraph2JSON(PrintStream out) {
+  void Program.callGraph2JSON(PrintStream out, boolean forward) {
     InvocationTarget entryPoint =
         getTarget(entryPointPackage, entryPointMethod);
     out.println("{");
     out.println("  \"nodes\": [");
     ArrayList<InvocationTarget> all = new ArrayList<InvocationTarget>();
-    completeCallGraph(entryPoint, new HashSet<InvocationTarget>(), all);
+    if (forward)
+      completeCallGraph(entryPoint, new HashSet<InvocationTarget>(), all);
+    else
+      completeCallGraphBackward(entryPoint, new HashSet<InvocationTarget>(),
+                                all);
     for (int i = 0; i < all.size(); i++) {
       out.println("    {");
       InvocationTarget target = all.get(i);
@@ -67,6 +71,22 @@ public
     }
     for (InvocationTarget neighbor : target.cg()) {
       completeCallGraph(neighbor, visited, cg);
+    }
+    return;
+  }
+
+public
+  void Program.completeCallGraphBackward(InvocationTarget target,
+                                         Set<InvocationTarget> visited,
+                                         ArrayList<InvocationTarget> cg) {
+    if (visited.contains(target))
+      return;
+    visited.add(target);
+    if (target.shouldBeConsiderAsMethod()) {
+      cg.add(target);
+    }
+    for (InvocationTarget neighbor : target.reversedCG()) {
+      completeCallGraphBackward(neighbor, visited, cg);
     }
     return;
   }

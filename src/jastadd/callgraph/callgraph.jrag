@@ -28,8 +28,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.extendj.callgraph.CallGraph;
-import org.extendj.callgraph.CallGraphNode;
 import java.util.LinkedHashSet;
 import org.extendj.Cat;
 import java.util.function.Predicate;
@@ -37,12 +35,12 @@ import java.util.stream.Collectors;
 
 aspect CallGraphWithRAGS {
   coll Set<InvocationTarget> InvocationTarget
-      .reversedCG()[new LinkedHashSet<>()] with add root Program;
-  InvocationTarget contributes this to InvocationTarget.reversedCG() for each cg();
+      .backwardCG()[new LinkedHashSet<>()] with add root Program;
+  InvocationTarget contributes this to InvocationTarget.backwardCG() for each cg();
 
-  coll Set<InvocationTarget> InvocationTarget
-      .completeReversedCG()[new LinkedHashSet<>()] with add root Program;
-  InvocationTarget contributes this to InvocationTarget.completeReversedCG() for each completeCallGraph();
+  syn lazy Set<InvocationTarget> InvocationTarget.reversedCG() {
+    return backwardCG();
+  }
 
   syn Set<InvocationTarget> InvocationTarget.cg()
       circular[new LinkedHashSet<>()] {
@@ -70,10 +68,7 @@ public
   void InvocationTarget.processAttributeDeclarations(
       Set<InvocationTarget> declarations, Set<InvocationTarget> callGraph) {
     for (InvocationTarget declaration : declarations) {
-      if (declaration.shouldBeConsiderAsMethod() &&
-          declaration.itsTypeIsCreated(this)) {
-        TypeDecl host = hostType().getGenericHostDecl();
-        Set<TypeDecl> allInstances = newInstances();
+      if (declaration.shouldBeConsiderAsMethod()) {
         callGraph.add(declaration);
       } else {
         callGraph.addAll(declaration.cg());
@@ -191,14 +186,6 @@ public
   ConstructorDecl contributes nta getImplicitConstructorInvocation()
       to ConstructorDecl.calledMethods();
 
-  syn CallGraph Program.callGraph() {
-    CallGraph g = new CallGraph();
-    InvocationTarget target = getTarget(entryPointPackage, entryPointMethod);
-    InvocationTarget caller = target.shouldBeConsiderAsMethod() ? target : null;
-    target.callGraphBuilder(g, new HashSet<>(), caller, true);
-    return g;
-  }
-
   syn InvocationTarget Program.getTarget(String pkg, String name) {
     String packageName =
         pkg.contains(".") ? pkg.substring(0, pkg.lastIndexOf(".")) : "";
@@ -241,106 +228,6 @@ public
   }
 
 public
-  boolean MethodDecl.isABridge = false;
-public
-  boolean ConstructorDecl.isABridge = false;
-public
-  boolean InstanceInitializer.isABridge = false;
-public
-  boolean StaticInitializer.isABridge = false;
-
-public
-  CallGraphNode MethodDecl.callGraphNode = null;
-public
-  CallGraphNode ConstructorDecl.callGraphNode = null;
-public
-  CallGraphNode InstanceInitializer.callGraphNode = null;
-public
-  CallGraphNode StaticInitializer.callGraphNode = null;
-
-public
-  void InvocationTarget.setIsABridge(boolean b) { isABridge = b; }
-
-public
-  CallGraphNode InvocationTarget.getCallGraphNode() { return callGraphNode; }
-
-public
-  void InvocationTarget.setCallGraphNode(CallGraphNode cgn) {
-    callGraphNode = cgn;
-  }
-  /**
-   * Builds a call graph based on invocation targets.
-   *
-   * @param g The call graph to populate.
-   * @param visited Set of visited invocation targets to prevent cycles.
-   * @param previous The previous invocation target in the call chain.
-   * @param first Indicates whether this is the first invocation in the call
-   * chain.
-   */
-public
-  void InvocationTarget.callGraphBuilder(
-      CallGraph g, Set<InvocationTarget> visited, InvocationTarget previous,
-      boolean first) {
-    if (!first && shouldBeConsiderAsMethod() && previous != null) {
-      addMethodCallToGraph(g, previous, this);
-    }
-    if (!visited.add(this)) {
-      return;
-    }
-    processCalledMethods(g, visited, previous);
-    processImplicitCalls(g, visited, previous);
-  }
-
-  /**
-   * Adds a method call to the call graph.
-   *
-   * @param g The call graph to add the method call to.
-   * @param caller The calling invocation target.
-   * @param callee The called invocation target.
-   */
-public
-  void InvocationTarget.addMethodCallToGraph(
-      CallGraph g, InvocationTarget caller, InvocationTarget callee) {
-    g.addMethodCall(caller.targetSignature(), caller.getKindOfAttribute(),
-                    callee.targetSignature(), callee.getKindOfAttribute(),
-                    caller, callee);
-  }
-
-  /**
-   * Processes the invocation targets of called methods.
-   *
-   * @param g The call graph to populate.
-   * @param visited Set of visited invocation targets to prevent cycles.
-   * @param previous The previous invocation target in the call chain.
-   */
-public
-  void InvocationTarget.processCalledMethods(
-      CallGraph g, Set<InvocationTarget> visited, InvocationTarget previous) {
-    for (Invocable method : calledMethods()) {
-      for (InvocationTarget decl : method.allDecls()) {
-        InvocationTarget caller = shouldBeConsiderAsMethod() ? this : previous;
-        decl.callGraphBuilder(g, visited, caller, false);
-      }
-    }
-  }
-
-  /**
-   * Processes the implicit invocation targets.
-   *
-   * @param g The call graph to populate.
-   * @param visited Set of visited invocation targets to prevent cycles.
-   * @param previous The previous invocation target in the call chain.
-   */
-public
-  void InvocationTarget.processImplicitCalls(
-      CallGraph g, Set<InvocationTarget> visited, InvocationTarget previous) {
-    for (InvocationTarget decl : implicitCalls()) {
-      InvocationTarget caller = shouldBeConsiderAsMethod() ? this : previous;
-      decl.callGraphBuilder(g, visited, caller, false);
-    }
-  }
-
-public
   boolean Program.attributesOnly = false;
 
 public
@@ -356,16 +243,16 @@ public
   eq MethodDecl.shouldBeConsiderAsMethod() =
       (!program().attributesOnly || isAnAttribute()) && hasBlock();
 
-  syn boolean InvocationTarget.itsTypeIsCreated(InvocationTarget caller) {
-    TypeDecl host = hostType().getGenericHostDecl();
-    Set<TypeDecl> allInstances = caller.newInstances();
-    for (TypeDecl t : allInstances) {
-      if (host.subtype(t)) {
-        return true;
-      }
-    }
-    return false;
-  }
+  // syn boolean InvocationTarget.itsTypeIsCreated(InvocationTarget caller) {
+  //   TypeDecl host = hostType().getGenericHostDecl();
+  //   Set<TypeDecl> allInstances = caller.newInstances();
+  //   for (TypeDecl t : allInstances) {
+  //     if (host.subtype(t)) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
 
   /**
    * Returns a set of implicit call targets for this invocation target.
@@ -429,7 +316,7 @@ public
     }
     MethodDecl targetDecl = decl();
     TypeDecl host = targetDecl.hostType().getGenericHostDecl();
-    Set<TypeDecl> allInstances = enclosingTarget().newInstances();
+    // Set<TypeDecl> allInstances = enclosingTarget().newInstances();
     for (TypeDecl t : host.subtypes()) {
       if (t instanceof ClassDecl || t instanceof InterfaceDecl) {
         decls.addAll(
@@ -599,35 +486,4 @@ public
     }
     return kinds;
   }
-}
-
-aspect RTA {
-
-  syn Set<TypeDecl> InvocationTarget.newInstances()
-      circular[new LinkedHashSet<>()] {
-    Set<TypeDecl> newInstances = new LinkedHashSet<>();
-    newInstances.addAll(localInstances());
-    for (InvocationTarget decl : completeReversedCG()) {
-      if (decl instanceof MethodDecl) {
-        MethodDecl md = (MethodDecl)decl;
-        newInstances.addAll(md.newInstances());
-      } else if (decl instanceof ConstructorDecl) {
-        ConstructorDecl cd = (ConstructorDecl)decl;
-        newInstances.addAll(cd.newInstances());
-      } else if (decl instanceof InstanceInitializer) {
-        InstanceInitializer ii = (InstanceInitializer)decl;
-        newInstances.addAll(ii.newInstances());
-      } else if (decl instanceof StaticInitializer) {
-        StaticInitializer si = (StaticInitializer)decl;
-        newInstances.addAll(si.newInstances());
-      } else {
-        throw new RuntimeException("CAT: Unknown invocation target.");
-      }
-    }
-    return newInstances;
-  }
-
-  coll Set<TypeDecl> InvocationTarget
-      .localInstances()[new LinkedHashSet<>()] with addAll;
-  ClassInstanceExpr contributes type().supertypesIncludingSelf() to InvocationTarget.localInstances() for enclosingTarget();
 }
