@@ -73,6 +73,7 @@ public class Cat extends Frontend {
   public String callGraphPath = "";
   public String entryPointPackage = "";
   public String entryPointMethod = "";
+  public static boolean allMethods = false;
   public static Object DrAST_root_node;
   public static boolean vscode = false;
   public boolean forward = true;
@@ -103,6 +104,9 @@ public class Cat extends Frontend {
       case "-classpath":
         FEOptions.add("-classpath");
         FEOptions.add(args[++i]);
+        break;
+      case "-allMethods":
+        allMethods = true;
         break;
       case "-visualise":
         visualiseCallGraph = true;
@@ -170,7 +174,9 @@ public class Cat extends Frontend {
     log("Starting SCCs computation");
     // cg.computeSCCs();
     log("SCCs computation finished");
-
+    if (allMethods) {
+      cat.getEntryPoint().allMethods();
+    }
     // String callgraphJson = cg.toJson();
     if (cat.getSaveCallGraph()) {
       File file = new File(cat.getCallGraphPath());
@@ -259,7 +265,6 @@ public class Cat extends Frontend {
     System.out.println("  -visualise        Visualize the call graph");
     System.out.println(
         "  -o <path>         Save call graph to a JSON file at the specified path");
-    System.out.println("  -rta              Enable Rapid Type Analysis");
     System.out.println(
         "  -mergeNames       Enable name merging for attributes. This option will discards type information");
     System.exit(1);
