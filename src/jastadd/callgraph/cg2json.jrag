@@ -97,6 +97,8 @@ public
     out.println("      \"methodName\": \"" + targetSignature() + "\",");
     out.println("      \"sccId\": " + getSCCID() + ",");
     out.println("      \"uniqueSCCAndNoSelfLoop\": " + !inSCC() + ",");
+    out.println("      \"path\": \"" + enclosingCompilationUnit().pathName() +
+                ":" + getLine(getStart()) + "\",");
     out.println("      \"kind\": [");
     for (int i = 0; i < getKindOfAttribute().size(); i++) {
       out.println("        \"" + getKindOfAttribute().get(i) + "\"" +

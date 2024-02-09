@@ -175,7 +175,12 @@ public class Cat extends Frontend {
     // cg.computeSCCs();
     log("SCCs computation finished");
     if (allMethods) {
-      cat.getEntryPoint().allMethods();
+      System.out.println(cat.getEntryPoint().allMethodsToJson());
+      System.exit(0);
+    }
+    if (vscode) {
+      root.callGraph2JSON(System.out, true);
+      System.exit(0);
     }
     // String callgraphJson = cg.toJson();
     if (cat.getSaveCallGraph()) {
