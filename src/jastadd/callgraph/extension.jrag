@@ -30,7 +30,11 @@
 
 aspect AllMethods {
   coll Set<InvocationTarget> Program.allMethods()[new HashSet<>()] with add;
-  InvocationTarget contributes this to Program.allMethods();
+  InvocationTarget contributes this when visible() to Program.allMethods();
+
+  syn boolean InvocationTarget.visible() = false;
+  eq MethodDecl.visible() = true;
+  eq ConstructorDecl.visible() = true;
 
   inh CompilationUnit InvocationTarget.enclosingCompilationUnit();
   eq CompilationUnit.getChild().enclosingCompilationUnit() = this;
@@ -59,8 +63,15 @@ public
     return sb.toString();
   }
 
-  syn String InvocationTarget.methodName() = targetSignature().substring(
-      targetSignature().indexOf("::") + 2, targetSignature().indexOf("("));
+  syn String InvocationTarget.methodName() {
+    String res = "";
+    try {
+      res = targetSignature().substring(targetSignature().indexOf("::") + 2,
+                                        targetSignature().indexOf("("));
+    } catch (Exception e) {
+    }
+    return res;
+  }
   syn String InvocationTarget.packageName() =
       hostType().packageName() + "." + hostType().name();
   syn int InvocationTarget.lineStart() = getLine(getStart());

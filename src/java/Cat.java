@@ -76,7 +76,7 @@ public class Cat extends Frontend {
   public static boolean allMethods = false;
   public static Object DrAST_root_node;
   public static boolean vscode = false;
-  public boolean forward = true;
+  public static boolean forward = true;
   ;
 
   private String[] setEnv(String[] args) throws FileNotFoundException {
@@ -122,10 +122,10 @@ public class Cat extends Frontend {
         vscode = true;
         break;
       case "-backward":
-        forward = true;
+        forward = false;
         break;
       default:
-        System.err.println("Unrecognized option: " + opt);
+
         printOptionsUsage();
         break;
       }
@@ -168,7 +168,6 @@ public class Cat extends Frontend {
     }
 
     log("Starting call graph generation");
-    // CallGraph cg = cat.getEntryPoint().callGraph();
 
     log("Call graph generation finished");
     log("Starting SCCs computation");
@@ -179,7 +178,7 @@ public class Cat extends Frontend {
       System.exit(0);
     }
     if (vscode) {
-      root.callGraph2JSON(System.out, true);
+      root.callGraph2JSON(System.out, forward);
       System.exit(0);
     }
     // String callgraphJson = cg.toJson();
@@ -187,7 +186,7 @@ public class Cat extends Frontend {
       File file = new File(cat.getCallGraphPath());
       PrintStream out = new PrintStream(new FileOutputStream(file));
       // out.println(callgraphJson);
-      root.callGraph2JSON(out, true);
+      root.callGraph2JSON(out, forward);
       out.close();
       log("Call graph saved to " + cat.getCallGraphPath());
     }
@@ -260,6 +259,8 @@ public class Cat extends Frontend {
   }
 
   private void printOptionsUsage() {
+    if (vscode)
+      System.exit(0);
     System.out.println("Usage: java -jar cat.jar [options] <source_files>");
     System.out.println("Options:");
     System.out.println(

@@ -52,7 +52,10 @@ public
     out.println("  \"edges\": [");
     Boolean first = true;
     for (InvocationTarget target : all) {
-      target.edges2JSON(out, first);
+      if (forward)
+        target.edges2JSON(out, first);
+      else
+        target.edges2JSONReversed(out, first);
       first = false;
     }
     out.println("  ]");
@@ -109,6 +112,19 @@ public
 public
   void InvocationTarget.edges2JSON(PrintStream out, Boolean first) {
     for (InvocationTarget neighbor : cg()) {
+      out.println((first ? "    " : "   ,") + "    {");
+      if (first) {
+        first = false;
+      }
+      out.println("      \"source\": \"" + targetSignature() + "\",");
+      out.println("      \"target\": \"" + neighbor.targetSignature() + "\"");
+      out.println("    }");
+    }
+  }
+
+public
+  void InvocationTarget.edges2JSONReversed(PrintStream out, Boolean first) {
+    for (InvocationTarget neighbor : reversedCG()) {
       out.println((first ? "    " : "   ,") + "    {");
       if (first) {
         first = false;
