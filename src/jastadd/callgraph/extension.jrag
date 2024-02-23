@@ -29,7 +29,8 @@
  */
 
 aspect AllMethods {
-  coll Set<InvocationTarget> Program.allMethods()[new HashSet<>()] with add;
+  coll Set<InvocationTarget> Program.allMethods()[new HashSet<>()] with add root
+      Program;
   InvocationTarget contributes this when visible() to Program.allMethods();
 
   syn boolean InvocationTarget.visible() = false;

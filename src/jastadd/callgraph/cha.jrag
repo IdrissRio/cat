@@ -50,21 +50,21 @@ aspect CHA {
   /**
    * Indicates if the TypeDecl is a parameterized declaration.
    */
-  syn boolean TypeDecl.isParDecl() = false;
+  syn lazy boolean TypeDecl.isParDecl() = false;
   eq ParClassDecl.isParDecl() = true;
   eq ParInterfaceDecl.isParDecl() = true;
 
   /**
    * Indicates if the TypeDecl is a raw declaration.
    */
-  syn boolean TypeDecl.isRawDecl() = false;
+  syn lazy boolean TypeDecl.isRawDecl() = false;
   eq RawClassDecl.isRawDecl() = true;
   eq RawInterfaceDecl.isRawDecl() = true;
 
   /**
    * Gets the generic host declaration for a TypeDecl.
    */
-  syn TypeDecl TypeDecl.getGenericHostDecl() = this;
+  syn lazy TypeDecl TypeDecl.getGenericHostDecl() = this;
   eq ParClassDecl.getGenericHostDecl() = genericDecl();
   eq ParInterfaceDecl.getGenericHostDecl() = genericDecl();
   eq RawClassDecl.getGenericHostDecl() = genericDecl();
@@ -73,7 +73,7 @@ aspect CHA {
   /**
    * Returns the generc supertype target of a ClassDecl.
    */
-  syn TypeDecl ClassDecl.supertypeTarget() {
+  syn lazy TypeDecl ClassDecl.supertypeTarget() {
     if (supertype().isParDecl()) {
       return ((ParClassDecl)supertype()).genericDecl();
     } else if (supertype().isRawDecl()) {
@@ -86,7 +86,7 @@ aspect CHA {
   /**
    * Returns the generic super types target of a ClassDecl.
    */
-  syn java.util.List<TypeDecl> ClassDecl.superInterfacesTarget() {
+  syn lazy java.util.List<TypeDecl> ClassDecl.superInterfacesTarget() {
     java.util.List<TypeDecl> interfaces = new ArrayList<TypeDecl>();
     Iterator iter = superInterfaces().iterator();
     while (iter.hasNext()) {
@@ -105,7 +105,7 @@ aspect CHA {
   /**
    * Returns the generic super types target of a ClassDecl.
    */
-  syn java.util.List<TypeDecl> InterfaceDecl.superInterfacesTarget() {
+  syn lazy java.util.List<TypeDecl> InterfaceDecl.superInterfacesTarget() {
     java.util.List<TypeDecl> interfaces = new ArrayList<TypeDecl>();
     Iterator iter = superInterfaces().iterator();
     while (iter.hasNext()) {
@@ -124,7 +124,7 @@ aspect CHA {
   /**
    * Represents the set of subtype declarations, including the current type.
    */
-  syn Set<TypeDecl> TypeDecl.subtypesIncludingSelf() {
+  syn lazy Set<TypeDecl> TypeDecl.subtypesIncludingSelf() {
     Set<TypeDecl> subtypes = new HashSet<>(subtypes());
     subtypes.add(this);
     // if (program().rta) {
@@ -135,7 +135,7 @@ aspect CHA {
     return subtypes;
   }
 
-  syn Set<TypeDecl> TypeDecl.supertypesIncludingSelf() {
+  syn lazy Set<TypeDecl> TypeDecl.supertypesIncludingSelf() {
     Set<TypeDecl> supertypes = new HashSet<>(supertypes());
     supertypes.add(this);
     return supertypes;
@@ -144,7 +144,7 @@ aspect CHA {
 public
   boolean Program.rta = false;
 
-  syn Set<TypeDecl> InterfaceDecl.subtypesIncludingSelf() {
+  syn lazy Set<TypeDecl> InterfaceDecl.subtypesIncludingSelf() {
     Set<TypeDecl> subtypes = new HashSet<>(subtypes());
     subtypes.add(this);
     return subtypes;

@@ -1,1 +1,0 @@
-aspect Extra { syn boolean State.isStartState() = false; }

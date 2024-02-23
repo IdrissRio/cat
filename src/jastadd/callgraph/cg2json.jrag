@@ -50,12 +50,9 @@ public
 
     out.println("  ],");
     out.println("  \"edges\": [");
-    Boolean first = true;
+    boolean first = true;
     for (InvocationTarget target : all) {
-      if (forward)
-        target.edges2JSON(out, first);
-      else
-        target.edges2JSONReversed(out, first);
+      target.edges2JSON(out, first, forward);
       first = false;
     }
     out.println("  ]");
@@ -102,6 +99,21 @@ public
     out.println("      \"uniqueSCCAndNoSelfLoop\": " + !inSCC() + ",");
     out.println("      \"path\": \"" + enclosingCompilationUnit().pathName() +
                 ":" + getLine(getStart()) + "\",");
+    out.println("      \"bridge\": false,");
+    out.println("      \"paramTypes\": {");
+    boolean isFirstParam = true;
+    for (Map.Entry<String, String> entry : paramTypes().entrySet()) {
+      if (!isFirstParam) {
+        out.print(",\n");
+      }
+      out.print("        \"");
+      out.print(entry.getKey());
+      out.print("\": \"");
+      out.print(entry.getValue());
+      out.print("\"");
+      isFirstParam = false;
+    }
+    out.print("\n      },\n");
     out.println("      \"kind\": [");
     for (int i = 0; i < getKindOfAttribute().size(); i++) {
       out.println("        \"" + getKindOfAttribute().get(i) + "\"" +
@@ -110,21 +122,9 @@ public
     out.println("      ]");
   }
 public
-  void InvocationTarget.edges2JSON(PrintStream out, Boolean first) {
-    for (InvocationTarget neighbor : cg()) {
-      out.println((first ? "    " : "   ,") + "    {");
-      if (first) {
-        first = false;
-      }
-      out.println("      \"source\": \"" + targetSignature() + "\",");
-      out.println("      \"target\": \"" + neighbor.targetSignature() + "\"");
-      out.println("    }");
-    }
-  }
-
-public
-  void InvocationTarget.edges2JSONReversed(PrintStream out, Boolean first) {
-    for (InvocationTarget neighbor : reversedCG()) {
+  void InvocationTarget.edges2JSON(PrintStream out, boolean first,
+                                   boolean forward) {
+    for (InvocationTarget neighbor : (forward ? cg() : reversedCG())) {
       out.println((first ? "    " : "   ,") + "    {");
       if (first) {
         first = false;

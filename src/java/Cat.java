@@ -167,12 +167,6 @@ public class Cat extends Frontend {
       System.exit(exitCode);
     }
 
-    log("Starting call graph generation");
-
-    log("Call graph generation finished");
-    log("Starting SCCs computation");
-    // cg.computeSCCs();
-    log("SCCs computation finished");
     if (allMethods) {
       System.out.println(cat.getEntryPoint().allMethodsToJson());
       System.exit(0);
