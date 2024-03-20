@@ -489,6 +489,17 @@ public
                                    Modifier::isCollectionAttribute);
   }
 
+  syn lazy boolean InvocationTarget.isDeclaredStatic() = false;
+  eq MethodDecl.isDeclaredStatic() = isStatic();
+  syn lazy boolean InvocationTarget.isDeclaredPrivate() = false;
+  eq MethodDecl.isDeclaredPrivate() = isPrivate();
+  syn lazy boolean InvocationTarget.isConstructorDeclaration() = false;
+  eq ConstructorDecl.isConstructorDeclaration() = true;
+  syn lazy boolean InvocationTarget.isStaticInitializerDeclration() = false;
+  eq StaticInitializer.isStaticInitializerDeclration() = true;
+  syn lazy boolean InvocationTarget.isInstanceInitializerDeclration() = false;
+  eq InstanceInitializer.isInstanceInitializerDeclration() = true;
+
   syn lazy java.util.List<String> InvocationTarget.getKindOfAttribute() {
     java.util.List<String> kinds = new ArrayList<String>();
     if (isSynAttribute()) {
@@ -503,9 +514,32 @@ public
     if (isCollectionAttribute()) {
       kinds.add("collection");
     }
-    if (kinds.isEmpty()) {
-      kinds.add("method");
+    if (isDeclaredStatic()) {
+      kinds.add("static");
     }
+    if (isDeclaredPrivate()) {
+      kinds.add("private");
+    }
+    if (isConstructorDeclaration()) {
+      kinds.add("constructor");
+    }
+
+    if (isInstanceInitializerDeclration()) {
+      kinds.add("instance-initializer");
+    }
+
+    if (isStaticInitializerDeclration()) {
+      kinds.add("static-initializer");
+    }
+
+    if (kinds.isEmpty()) {
+      if (this == entryPoint()) {
+        kinds.add("entry-point");
+      } else {
+        kinds.add("method");
+      }
+    }
+
     return kinds;
   }
 }

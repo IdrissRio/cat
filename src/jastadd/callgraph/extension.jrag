@@ -49,6 +49,7 @@ public
     int methodCount = 0;
     for (InvocationTarget m : allMethods()) {
       sb.append("    {\n");
+      sb.append("      \"fullName\": \"" + m.targetSignature() + "\",\n");
       sb.append("      \"name\": \"" + m.methodName() + "\",\n");
       sb.append("      \"file\": \"" + m.enclosingCompilationUnit().pathName() +
                 "\",\n");

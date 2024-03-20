@@ -163,9 +163,6 @@ public class Cat extends Frontend {
     root.entryPointMethod = cat.getEntryPointMethod();
     int exitCode = cat.run(jCheckerArgs);
     DrAST_root_node = root;
-    if (exitCode != 0) {
-      System.exit(exitCode);
-    }
 
     if (allMethods) {
       System.out.println(cat.getEntryPoint().allMethodsToJson());
@@ -173,7 +170,7 @@ public class Cat extends Frontend {
     }
     if (vscode) {
       root.callGraph2JSON(System.out, forward);
-      System.exit(0);
+      System.exit(exitCode);
     }
     // String callgraphJson = cg.toJson();
     if (cat.getSaveCallGraph()) {

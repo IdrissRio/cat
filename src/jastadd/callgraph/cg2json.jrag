@@ -29,6 +29,12 @@
  */
 
 aspect CG2JSON {
+
+  inh InvocationTarget InvocationTarget.entryPoint();
+  eq Program.getChild().entryPoint() =
+      getTarget(entryPointPackage, entryPointMethod);
+
+  syn boolean InvocationTarget.isEntryPoint() = this == entryPoint();
 public
   void Program.callGraph2JSON(PrintStream out, boolean forward) {
     InvocationTarget entryPoint =
