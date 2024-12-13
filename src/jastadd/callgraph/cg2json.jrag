@@ -34,6 +34,34 @@ aspect CG2JSON {
   eq Program.getChild().entryPoint() =
       getTarget(entryPointPackage, entryPointMethod);
 
+public
+  void Program.callGraphToCSV(PrintStream out, boolean forward) {
+    InvocationTarget entryPoint =
+        getTarget(entryPointPackage, entryPointMethod);
+
+    out.println("methodName,sccId,uniqueSCCAndNoSelfloop");
+
+    ArrayList<InvocationTarget> all = new ArrayList<>();
+    if (forward) {
+      completeCallGraph(entryPoint, new HashSet<>(), all);
+    } else {
+      completeCallGraphBackward(entryPoint, new HashSet<>(), all);
+    }
+
+    for (InvocationTarget target : all) {
+      target.nodesToCSV(out);
+    }
+  }
+
+public
+  void InvocationTarget.nodesToCSV(PrintStream out) {
+    String methodName = targetSignature();
+    int sccId = getSCCID();
+    boolean uniqueSCCAndNoSelfLoop = !inSCC();
+
+    out.printf("%s,%d,%b,%n", methodName, sccId, uniqueSCCAndNoSelfLoop);
+  }
+
   syn boolean InvocationTarget.isEntryPoint() = this == entryPoint();
 public
   void Program.callGraph2JSON(PrintStream out, boolean forward) {

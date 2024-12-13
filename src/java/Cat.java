@@ -174,12 +174,22 @@ public class Cat extends Frontend {
     }
     // String callgraphJson = cg.toJson();
     if (cat.getSaveCallGraph()) {
-      File file = new File(cat.getCallGraphPath());
-      PrintStream out = new PrintStream(new FileOutputStream(file));
-      // out.println(callgraphJson);
-      root.callGraph2JSON(out, forward);
-      out.close();
+      // Save the call graph as JSON
+      File jsonFile = new File(cat.getCallGraphPath());
+      try (PrintStream jsonOut =
+               new PrintStream(new FileOutputStream(jsonFile))) {
+        root.callGraph2JSON(jsonOut, forward);
+      }
       log("Call graph saved to " + cat.getCallGraphPath());
+
+      // Save the call graph as CSV
+      String csvFilePath = cat.getCallGraphPath().replace(".json", ".csv");
+      File csvFile = new File(csvFilePath);
+      try (PrintStream csvOut =
+               new PrintStream(new FileOutputStream(csvFile))) {
+        root.callGraphToCSV(csvOut, forward);
+      }
+      log("Call graph saved to " + csvFilePath);
     }
 
     if (cat.getVisualiseCallGraph()) {

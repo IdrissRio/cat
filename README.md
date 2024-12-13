@@ -73,8 +73,12 @@ CAT provides a command-line interface for generating and visualizing call graphs
 ### Generate a Call Graph
 
 ```
- java -jar cat.jar <path-to-java-program> -o <output-file> -entryPoint <package-name>.<class-name> <method-name>
+ java -jar cat.jar <path-to-java-program> -o <output-file.json> -entryPoint <package-name>.<class-name> <method-name>
 ```
+
+The `-o` flag specifies the output file where the call graph will be saved. The file
+has to end with `.json` to be correctly recognized by the visualization tool.
+CAT will also generate a lightweight CSV file with the same name as the output file.
 
 
 ### Visualize a Call Graph
