@@ -38,8 +38,7 @@ public
   void Program.callGraphToCSV(PrintStream out, boolean forward) {
     InvocationTarget entryPoint =
         getTarget(entryPointPackage, entryPointMethod);
-
-    out.println("methodName,sccId,uniqueSCCAndNoSelfloop");
+    out.println("methodName,sccId,uniqueSCCAndNoSelfloop,bridge,paramTypes");
 
     ArrayList<InvocationTarget> all = new ArrayList<>();
     if (forward) {
@@ -59,7 +58,14 @@ public
     int sccId = getSCCID();
     boolean uniqueSCCAndNoSelfLoop = !inSCC();
 
-    out.printf("%s,%d,%b,%n", methodName, sccId, uniqueSCCAndNoSelfLoop);
+    String paramTypes = paramTypes()
+                            .entrySet()
+                            .stream()
+                            .map(Map.Entry::getValue)
+                            .collect(Collectors.joining(","));
+
+    out.printf("%s,%d,%b,%s%n", methodName, sccId, uniqueSCCAndNoSelfLoop,
+               paramTypes);
   }
 
   syn boolean InvocationTarget.isEntryPoint() = this == entryPoint();
