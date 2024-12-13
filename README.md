@@ -141,14 +141,14 @@ Open a browser and visit `http://localhost:8080` to explore the generated graph:
   <img  src="https://raw.githubusercontent.com/idrissrio/cat/main/resources/CallGraphVisualisation.png">
 </p>
 
-## Running CAT on ExtendJ
+## Running CAT on CAT
 
-We provide a script, `./cat-on-extendj`, that simplifies running CAT on the ExtendJ Java compiler. This script automates the entire process, from setting up the required environment to running the analysis.
+We provide a script, `./run_cat.sh`, that simplifies running CAT on CAT itself. This script automates the entire process, from setting up the required environment to running the analysis.
 
 To use the script, simply execute the following command:
 
 ```
-./cat-on-extendj
+./run_cat.sh
 ```
 
 The script it will start a local server, and you can visualize the generated call graph by navigating to `http://localhost:8080` in your web browser. No additional configuration is required—just run the script and wait for the results!
