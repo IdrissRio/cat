@@ -60,7 +60,7 @@ CAT (CallGraph Analysis Tool) computes call graphs for Java programs, where node
 4. Build the project:
 
    ```
-    ./gradlew build
+    ./gradlew build -x test -PenableOptimization
    ```
 
 ### Java Version
