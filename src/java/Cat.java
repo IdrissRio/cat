@@ -165,12 +165,20 @@ public class Cat extends Frontend {
     cg.computeSCCs();
     log("SCCs computation finished");
 
+    String callgraphCSV = cg.toCsv();
     String callgraphJson = cg.toJson();
+
     if (cat.getSaveCallGraph()) {
       PrintWriter out = new PrintWriter(cat.getCallGraphPath());
       out.println(callgraphJson);
       out.close();
       log("Call graph saved to " + cat.getCallGraphPath());
+
+      String csvPath = cat.getCallGraphPath().replace(".json", ".csv");
+      out = new PrintWriter(csvPath);
+      out.println(callgraphCSV);
+      out.close();
+      log("CSV call graph saved to " + csvPath);
     }
 
     if (cat.getVisualiseCallGraph()) {

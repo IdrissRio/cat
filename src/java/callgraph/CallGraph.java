@@ -287,6 +287,52 @@ public void addCallGraph(CallGraph callGraph) {
     }
   }
 
+  public String toCsv() {
+    Map<Integer, Integer> sccIdCounts = new HashMap<>();
+    currentSccId = 0;
+    // Count the nodes for each SCC ID
+    for (CallGraphNode node : graph.values()) {
+        Integer sccID = node.getSccID();
+        sccIdCounts.put(sccID, sccIdCounts.getOrDefault(sccID, 0) + 1);
+    }
+
+    StringBuilder csvBuilder = new StringBuilder();
+
+    // Write the CSV header
+    csvBuilder.append("methodName,sccId,uniqueSCCAndNoSelfloop,paramTypes\n");
+
+    // Write the data rows
+    for (CallGraphNode node : graph.values()) {
+        String methodName = node.getMethodName();
+        Integer sccID = node.getSccID();
+        boolean isUniqueSCCAndNoSelfLoop =
+            (sccIdCounts.get(sccID) != null && sccIdCounts.get(sccID) == 1);
+
+        // Build the paramTypes field as a single string
+        StringBuilder paramTypesBuilder = new StringBuilder();
+        boolean isFirstParam = true;
+        for (Map.Entry<String, String> entry :
+             node.getTarget().paramTypes().entrySet()) {
+        if (!isFirstParam) {
+          paramTypesBuilder.append(
+              ";"); // Separate key-value pairs with a semicolon
+        }
+        paramTypesBuilder.append(entry.getKey())
+            .append(":")
+            .append(entry.getValue());
+        isFirstParam = false;
+        }
+
+        String paramTypes = paramTypesBuilder.toString();
+
+        // Write the CSV row
+        csvBuilder.append(String.format("%s,%d,%b,%s\n", methodName, sccID,
+                                        isUniqueSCCAndNoSelfLoop, paramTypes));
+    }
+
+    return csvBuilder.toString();
+  }
+
   /**
    * Convert the CallGraph to a JSON string.
    *
