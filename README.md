@@ -4,7 +4,7 @@
   <img width="300"  src="https://raw.githubusercontent.com/idrissrio/cat/main/resources/cat.png">
 </p>
 
-CAT (CallGraph Analysis Tool) is a Java tool that constructs call graphs using Class Hierarchy Analysis (CHA) and a variant of Rapid Type Analysis (RTA). The implementation leverages JastAdd and reference attribute grammars, as well as APIs provided by the ExtendJ Java compiler.
+CAT (CallGraph Analysis Tool) is a Java tool that constructs call graphs using Class Hierarchy Analysis (CHA). Cat is built upon ExtendJ and JastAdd.
 
 This repository relates to the artifact submitted at SLE 2024: [Efficient Demand Evaluation of Fixed-Point Attributes Using Static Analysis](https://github.com/IdrissRio/RS-SLE2024-Artifact). The tool was first introduced in the following paper:
 
@@ -31,10 +31,11 @@ CAT (CallGraph Analysis Tool) computes call graphs for Java programs, where node
 
 ## Features
 
-- **Call Graph Generation**: Generate precise call graphs for Java programs using CHA and RTA.
+- **Call Graph Generation**: Generate call graphs for Java programs using CHA.
 - **Web-based Visualization**: Interactive browser-based visualization of call graphs.
 - **Command-line Interface**: Simple CLI for generating call graphs.
 - **JSON Output**: Export call graphs in JSON format for easy integration with other tools.
+- **CSV Output**: Export some metadata in CSV format.
 
 ## Installation
 
@@ -155,7 +156,7 @@ To use the script, simply execute the following command:
 ./run_cat.sh
 ```
 
-The script it will start a local server, and you can visualize the generated call graph by navigating to `http://localhost:8080` in your web browser. No additional configuration is required—just run the script and wait for the results!
+The script will start a local server, and you can visualize the generated call graph by navigating to `http://localhost:8080` in your web browser. No additional configuration is required—just run the script and wait for the results!
 
 ## Contributing
 
