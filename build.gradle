@@ -38,9 +38,9 @@ jastadd {
                      "--optimize-imports"
                      ]
   if (project.hasProperty('enableOptimization')) {
-    jastaddOptions += ["--dnc", "--optimisation-config=CacheConfiguration.json", "--tracing=api"]
+    jastaddOptions += ["--dnc", "--optimisation-config=CacheConfiguration.csv", "--tracing=api"]
   }else if (project.hasProperty('enableTracing') && project.hasProperty('enableOptimization')) {
-    jastaddOptions += ["--tracing=compute", "--dnc", "--optimisation-config=CacheConfiguration.json"]
+    jastaddOptions += ["--tracing=compute", "--dnc", "--optimisation-config=CacheConfiguration.csv"]
   }else if(project.hasProperty('enableTracing')){
     jastaddOptions += ["--tracing=compute"]
   }else{
